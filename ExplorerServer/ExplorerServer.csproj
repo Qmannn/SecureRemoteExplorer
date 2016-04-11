@@ -43,7 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\SslChannel.cs" />
+    <Compile Include="Core\Client.cs" />
+    <Compile Include="Core\Network\Commands.cs" />
+    <Compile Include="Core\Network\DeserializationBinder.cs" />
+    <Compile Include="Core\Network\Message.cs" />
+    <Compile Include="Core\Network\SslChannel.cs" />
+    <Compile Include="Core\Server.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
