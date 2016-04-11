@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExplorerServer", "ExplorerServer\ExplorerServer.csproj", "{E20D3398-CA63-4AC1-9A3F-3A4E94D02F7F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExplorerClient", "ExplorerClient\ExplorerClient.csproj", "{1C713606-A3F7-4E90-BCB1-DC9CF54BF35F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E20D3398-CA63-4AC1-9A3F-3A4E94D02F7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E20D3398-CA63-4AC1-9A3F-3A4E94D02F7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E20D3398-CA63-4AC1-9A3F-3A4E94D02F7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C713606-A3F7-4E90-BCB1-DC9CF54BF35F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C713606-A3F7-4E90-BCB1-DC9CF54BF35F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C713606-A3F7-4E90-BCB1-DC9CF54BF35F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C713606-A3F7-4E90-BCB1-DC9CF54BF35F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
