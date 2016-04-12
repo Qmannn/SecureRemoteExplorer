@@ -76,8 +76,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Core\Network\DeserializationBinder.cs" />
-    <Compile Include="ViewModel\MainViewModel.cs" />
-    <Page Include="Gui\MainWindow.xaml">
+    <Page Include="Gui\View\LoginView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Gui\View\MainView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -89,8 +92,12 @@
     <Compile Include="Core\Network\Commands.cs" />
     <Compile Include="Core\Network\Message.cs" />
     <Compile Include="Core\Network\SslChannel.cs" />
-    <Compile Include="Gui\MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
+    <Compile Include="Gui\ViewsShow.cs" />
+    <Compile Include="Gui\View\LoginView.xaml.cs">
+      <DependentUpon>LoginView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Gui\View\MainView.xaml.cs">
+      <DependentUpon>MainView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
