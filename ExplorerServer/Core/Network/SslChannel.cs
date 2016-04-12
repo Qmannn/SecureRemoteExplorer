@@ -29,7 +29,9 @@ namespace ExplorerServer.Core.Network
             }
             catch (Exception ex)
             {
+#if DEBUG
                 Console.WriteLine("Не удалоь отправить сообщение: " + ex.Message);
+#endif
                 //TODO добавить запись в лог!
             }
         }
@@ -43,11 +45,12 @@ namespace ExplorerServer.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Не удалоь получить сообщение: " + ex.Message);
-                //TODO добавить запись в лог!
+#if DEBUG
+                Console.WriteLine("Не удалоь отправить сообщение: " + ex.Message);
+#endif
             }
 
-            return message ?? new Message(Commands.Bye, String.Empty);
+            return message ?? new Message(Commands.Error, String.Empty);
         }
     }
 }

@@ -33,6 +33,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mono.Security">
+      <HintPath>.\Mono.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Npgsql">
+      <HintPath>.\Npgsql.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Client.cs" />
+    <Compile Include="Core\DataBase\DbController.cs" />
     <Compile Include="Core\Network\Commands.cs" />
     <Compile Include="Core\Network\DeserializationBinder.cs" />
     <Compile Include="Core\Network\Message.cs" />
@@ -55,6 +62,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

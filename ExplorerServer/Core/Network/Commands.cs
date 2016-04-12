@@ -2,7 +2,9 @@
 {
     public enum Commands
     {
-        Hello,
-        Bye
+        Ok,
+        Error,
+        Login,
+        GetUserState
     }
 }

@@ -92,7 +92,6 @@
     <Compile Include="Core\Network\Commands.cs" />
     <Compile Include="Core\Network\Message.cs" />
     <Compile Include="Core\Network\SslChannel.cs" />
-    <Compile Include="Gui\ViewsShow.cs" />
     <Compile Include="Gui\View\LoginView.xaml.cs">
       <DependentUpon>LoginView.xaml</DependentUpon>
     </Compile>

@@ -16,6 +16,8 @@ namespace ExplorerClient.Core.Network
         private TcpClient _client;
         private readonly BinaryFormatter _formatter = new BinaryFormatter();
 
+        public bool Connected => _client.Connected;
+
         // The following method is invoked by the RemoteCertificateValidationDelegate.
         public static bool ValidateServerCertificate(
               object sender,
@@ -41,7 +43,6 @@ namespace ExplorerClient.Core.Network
                 _stream = new SslStream(_client.GetStream(), false,
                     new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
                 _stream.AuthenticateAsClient(host); 
-
             }
             catch (Exception)
             {
