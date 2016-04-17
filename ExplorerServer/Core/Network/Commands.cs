@@ -5,6 +5,14 @@
         Ok,
         Error,
         Login,
-        GetUserState
+        GetUserState,
+        ChangePass,
+        SetShareStatus,
+        PutCommonFile,
+        GetCommonFile,
+        PutPrivateFile,
+        GetPrivateFile,
+        GetCommonFileList,
+        GetPrivateFileList
     }
 }

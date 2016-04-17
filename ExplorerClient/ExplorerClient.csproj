@@ -76,6 +76,18 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Core\Network\DeserializationBinder.cs" />
+    <Page Include="Gui\View\ChangePassView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Gui\View\CreateCryptoKeys.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Gui\View\ExplorerView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Gui\View\LoginView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -92,6 +104,16 @@
     <Compile Include="Core\Network\Commands.cs" />
     <Compile Include="Core\Network\Message.cs" />
     <Compile Include="Core\Network\SslChannel.cs" />
+    <Compile Include="Core\RemoteFile.cs" />
+    <Compile Include="Gui\View\ChangePassView.xaml.cs">
+      <DependentUpon>ChangePassView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Gui\View\CreateCryptoKeys.xaml.cs">
+      <DependentUpon>CreateCryptoKeys.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Gui\View\ExplorerView.xaml.cs">
+      <DependentUpon>ExplorerView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Gui\View\LoginView.xaml.cs">
       <DependentUpon>LoginView.xaml</DependentUpon>
     </Compile>
@@ -128,7 +150,31 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Gui\image\key.PNG" />
+    <Resource Include="Gui\image\save.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\download.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\update.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\send.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\hash.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\recalcHash.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\upload.PNG" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ExplorerServer.Core;
+using ExplorerServer.Core.Cryptography;
 
 namespace ExplorerServer
 {
@@ -14,6 +18,11 @@ namespace ExplorerServer
             Server server = new Server(3000, "SSLServer.pfx");
 
             server.Start();
+            
+
+            //CryptoController controller = new CryptoController();
+            //controller.GostEncryptString("lolaaaaa", "SecretKey");
+            //controller.EncrypeStreamToFile(new StreamReader("test.txt"), "lol", "outfile");
         }
     }
 }

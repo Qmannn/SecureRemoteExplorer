@@ -29,13 +29,14 @@ namespace ExplorerClient.Gui.View
         private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
             BtnLogin.IsEnabled = false;
-            Regex reg = new Regex("[A-Za-z1-9_]*");
+            Regex reg = new Regex("[A-Za-z1-9_]");
             if (!reg.IsMatch(TbLogin.Text) || !reg.IsMatch(TbPass.Password))
             {
                 MessageBox.Show("Поля логин или пароль заполнены неверно", "Неверно заполнены поля", MessageBoxButton.OK,
                     MessageBoxImage.Error);
+                BtnLogin.IsEnabled = true;
+                return;
             }
-
             if (!Client.Connected)
             {
                 await Client.ConnectAsync("localhost", 3000);

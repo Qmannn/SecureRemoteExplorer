@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -9,6 +11,7 @@ using System.Text;
 using System.Threading;
 using ExplorerServer.Core.DataBase;
 using ExplorerServer.Core.Network;
+using Microsoft.SqlServer.Server;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -61,6 +64,7 @@ namespace ExplorerServer.Core
 
         #region Private
 
+        #region Comunicating with client
         private bool MessageHandler(Message message)
         {
             switch (message.Command)
@@ -74,15 +78,48 @@ namespace ExplorerServer.Core
                 case Commands.Ok:
                     break;
                 case Commands.Error:
-                    Console.WriteLine("Получено сообщение ошибки. Соединение разорвано. Логин: " + _login);
+                    Console.WriteLine("Клиент отключен. Логин: " + _login);
                     return false;
+                case Commands.ChangePass:
+                    _sslChannel.SendMessage(new Message(ChangePassword(message) ? Commands.Ok : Commands.Error, String.Empty));
+                    break;
+                case Commands.SetShareStatus:
+                    bool setStatusResult = false;
+                    try
+                    {
+                        setStatusResult = SetShareStatus(message);
+                    }
+                    catch (Exception ex)
+                    {
+                        _sslChannel.SendMessage(new Message(setStatusResult ? Commands.Ok : Commands.Error, ex.Message));
+                        break;
+                    }
+                    _sslChannel.SendMessage(new Message(setStatusResult ? Commands.Ok : Commands.Error, String.Empty));
+                    break;
+                case Commands.PutCommonFile:
+                    SendResult(ReciveCommonFile(message));
+                    break;
+                case Commands.GetCommonFile:
+                    SendCommonFile(message);
+                    break;
+                case Commands.PutPrivateFile:
+                    RecivePrivateFile(message);
+                    break;
+                case Commands.GetPrivateFile:
+                    SendPrivateFile(message);
+                    break;
+                case Commands.GetCommonFileList:
+                    SendCommonFileList();
+                    break;
+                case Commands.GetPrivateFileList:
+                    SendPrivateFileList();
+                    break;
                 default:
                     Console.WriteLine("Получена неизвестная команда");
                     return false;
             }
             return true;
         }
-
         private bool Authorization(Message loginMessage)
         {
             string login = loginMessage.StringMessage.Split('$').First();
@@ -114,6 +151,202 @@ namespace ExplorerServer.Core
             result += _dbController.GetFreeMemCount();
             return result;
         }
+
+        private bool ChangePassword(Message passMessage)
+        {
+            if (!CheckPassPolicy(passMessage.StringMessage))
+            {
+                return false;
+            }
+
+            var sha1 = SHA1.Create();
+
+            var pass = Encoding.UTF8.GetString(sha1.ComputeHash(Encoding.UTF8.GetBytes(passMessage.StringMessage)));
+            if (!_dbController.SetNewPassword(pass))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool SetShareStatus(Message message)
+        {
+            var newStatus = message.StringMessage == true.ToString();
+            if (newStatus && _dbController.GetPublicKey(_userId) == String.Empty)
+            {
+                throw new Exception("Ключ для обмена файлами не создан");
+            }
+            return _dbController.SetShareStatus(newStatus);
+        }
+
+        private bool ReciveCommonFile(Message message)
+        {
+            string fileName = CreateCommonFileName(message.StringMessage);
+            if (_sslChannel.ReciveFile(fileName))
+            {
+                var fileSize = new FileInfo(fileName).Length.ToString();
+                if (!_dbController.SaveNewCommonFile(message.StringMessage, fileName, fileSize))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool SendCommonFile(Message message)
+        {
+            string fileId = message.StringMessage;
+            string filePath = _dbController.GetCommonFilePath(fileId);
+            if (!File.Exists(filePath))
+            {
+                SendResult(false, "Файл поврежден или не найден");
+                Console.WriteLine("Файл не найден в файловой системе. Path: " + filePath);
+                return false;
+            }
+            SendResult(true);
+            _sslChannel.SendFile(filePath);
+            return true;
+        }
+
+        private void SendResult(bool result, string message = null)
+        {
+            _sslChannel.SendMessage(new Message(result ? Commands.Ok : Commands.Error, message ?? String.Empty));
+        }
+
+        private void SendCommonFileList()
+        {
+            var commonFiles = _dbController.GetCommonFileList();
+            foreach (var file in commonFiles)
+            {
+                _sslChannel.SendMessage(new Message(Commands.GetCommonFileList, file));
+            }
+            //Сообщение ERROR отправляется как флаг окончания списка
+            _sslChannel.SendMessage(new Message(Commands.Error, String.Empty));
+        }
+
+        private void SendPrivateFileList()
+        {
+            var privateFiles = _dbController.GetPrivateFileList();
+            foreach (var file in privateFiles)
+            {
+                _sslChannel.SendMessage(new Message(Commands.GetPrivateFileList, file));
+            }
+            //Сообщение ERROR отправляется как флаг окончания списка
+            _sslChannel.SendMessage(new Message(Commands.Error, String.Empty));
+        }
+
+        private void RecivePrivateFile(Message message)
+        {
+            var fields = message.StringMessage.Split('$');
+            if (fields.Length < 3)
+            {
+                SendResult(false);
+                return;
+            }
+            SendResult(true);
+            var fileName = CreatePrivateFileName(fields[0]);
+            string fileHash;
+            SHA1 hashCalc = SHA1.Create();
+            if (!((fields[2] == true.ToString())
+                    ? _sslChannel.ReciveEncryptedFile(fileName, fields[1])
+                    : _sslChannel.ReciveFile(fileName)))
+            {
+                File.Delete(fileName);
+                SendResult(false, "Ошибка получения файла");
+                return;
+            }
+            using (FileStream fs = new FileStream(fileName, FileMode.Open))
+            {
+                fileHash = Encoding.Unicode.GetString(hashCalc.ComputeHash(fs));
+            }
+            string keyHash = Encoding.Unicode.GetString(hashCalc.ComputeHash(Encoding.Unicode.GetBytes(fields[1])));
+            string fileSize = new FileInfo(fileName).Length.ToString();
+            if (!_dbController.SaveNewPrivateFile(fields[0], fileName, fileSize, fileHash, fields[2] == true.ToString(),
+                keyHash))
+            {
+                File.Delete(fileName);
+                SendResult(false, "Ошибка записи в базу данных");
+                return;
+            }
+            SendResult(true);
+        }
+
+        private void SendPrivateFile(Message message)
+        {
+            var fileId = message.StringMessage.Split('$').First();
+            var fileKey = message.StringMessage.Split('$').Last();
+            SHA1 hashCalc = SHA1.Create();
+            var keyHash = Encoding.Unicode.GetString(hashCalc.ComputeHash(Encoding.Unicode.GetBytes(fileKey)));
+            var filePath = _dbController.GetPrivateFilePath(fileId, keyHash);
+            if (filePath == null)
+            {
+                SendResult(false, "Неверный ключ!");
+                return;
+            }
+            SendResult(true);
+            _sslChannel.SendEncryptedFile(filePath, fileKey);
+            SendResult(true);
+        }
+
+        #endregion#
+
+        #region Other logic
+
+        /// <summary>
+        /// Проверка пароля на соответствие заданной политики паролей
+        /// </summary>
+        /// <param name="pass"></param>
+        /// <returns></returns>
+        private bool CheckPassPolicy(string pass)
+        {
+            //TODO сделать проврку
+            return true;
+        }
+
+        private static string CreateCommonFileName(string fileName)
+        {
+            if (!Directory.Exists("Common"))
+            {
+                Directory.CreateDirectory("Common");
+            }
+            string resultName = fileName == String.Empty ? "file" : fileName;
+            resultName = resultName.Replace("\\", "");
+            int i = 0;
+            while (File.Exists("Common\\" + resultName))
+            {
+                resultName = fileName.Split('.').First() + "_" + i + "." + fileName.Split('.').Last();
+                i++;
+            }
+            resultName = "Common\\" + resultName;
+            return resultName;
+        }
+
+        private static string CreatePrivateFileName(string fileName)
+        {
+            if (!Directory.Exists("Private"))
+            {
+                Directory.CreateDirectory("Private");
+            }
+            string resultName = fileName == String.Empty ? "file" : fileName;
+            resultName = resultName.Replace("\\", "");
+            int i = 0;
+            while (File.Exists("Private\\" + resultName))
+            {
+                resultName = fileName.Split('.').First() + "_" + i + "." + fileName.Split('.').Last();
+                i++;
+            }
+            resultName = "Private\\" + resultName;
+            return resultName;
+        }
+
+        #endregion#
+
+        #region Crypto logic
+
+
+
+        #endregion
+
 
         #endregion
     }

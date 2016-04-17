@@ -1,0 +1,214 @@
+﻿<Window x:Class="ExplorerClient.Gui.View.ExplorerView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:ExplorerClient.Core"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:ExplorerClient.Gui.View"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Title="Файлы"
+        Width="650"
+        Height="300"
+        MinWidth="620"
+        MinHeight="300"
+        Loaded="Window_Loaded"
+        mc:Ignorable="d">
+    <Grid>
+        <TabControl x:Name="TabExplorer">
+            <TabItem Width="200" Header="Общие файлы">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="27" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Button Name="BtnSaveToPrivate"
+                                Width="50"
+                                Margin="1,1,0,1"
+                                HorizontalAlignment="Left"
+                                Background="White"
+                                BorderBrush="White"
+                                Click="BtnSaveToPrivate_Click"
+                                ToolTip="Сохранить себе">
+                            <Image Source="../image/save.PNG" />
+                        </Button>
+                        <Button Width="50"
+                                Margin="56,2,0,0"
+                                HorizontalAlignment="Left"
+                                Background="White"
+                                BorderBrush="White"
+                                ToolTip="Скачать">
+                            <Image Source="../image/download.PNG" />
+                        </Button>
+                        <Button Name="BtnDelete"
+                                Width="50"
+                                Margin="111,1,0,1"
+                                HorizontalAlignment="Left"
+                                Background="White"
+                                BorderBrush="White"
+                                Click="BtnDelete_Click"
+                                ToolTip="Удалить">
+                            <Image Source="../image/delete.png" />
+                        </Button>
+                        <Button Name="BtnUpload"
+                                Width="50"
+                                Margin="166,2,0,0"
+                                HorizontalAlignment="Left"
+                                Background="White"
+                                BorderBrush="White"
+                                ToolTip="Загрузить новый файл">
+                            <Image Source="../image/upload.PNG" />
+                        </Button>
+                        <Button Name="BtnUpdateCommon"
+                                Width="50"
+                                Margin="0,2,0,0"
+                                HorizontalAlignment="Right"
+                                Background="White"
+                                BorderBrush="White"
+                                Click="BtnUpdateCommon_Click"
+                                ToolTip="Обновить список">
+                            <Image Source="../image/update.png" />
+                        </Button>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <ListView x:Name="LwCommonFiles">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="150"
+                                                    DisplayMemberBinding="{Binding Path=Name}"
+                                                    Header="Имя" />
+                                    <GridViewColumn Width="150"
+                                                    DisplayMemberBinding="{Binding Path=Size}"
+                                                    Header="Размер" />
+                                    <GridViewColumn Width="150"
+                                                    DisplayMemberBinding="{Binding Path=Owner}"
+                                                    Header="Загрузил" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Width="200" Header="Личные файлы">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="27" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Border BorderBrush="Black">
+                            <Grid>
+                                <Button Width="50"
+                                        Name="BtnDownloadPrivate"
+                                        Margin="0,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        Background="White"
+                                        BorderBrush="White"
+                                        ToolTip="Скачать">
+                                    <Image Source="../image/download.PNG" />
+                                </Button>
+                                <Button Width="50"
+                                        Name="BtnDeletePrivate"
+                                        Margin="55,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        Background="White"
+                                        BorderBrush="White"
+                                        ToolTip="Удалить">
+                                    <Image Source="../image/delete.png" />
+                                </Button>
+                                <Button Width="50"
+                                        Name="BtnUploadPrivate"
+                                        Margin="110,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        Background="White"
+                                        BorderBrush="White"
+                                        ToolTip="Загрузить новый файл">
+                                    <Image Source="../image/upload.PNG" />
+                                </Button>
+                                <Button Width="50"
+                                        Name="BtnCheckFile"
+                                        Margin="275,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        Background="White"
+                                        BorderBrush="White"
+                                        ToolTip="Проверить целостность">
+                                    <Image Source="../image/hash.PNG" />
+                                </Button>
+                                <Button Width="50"
+                                        Name="BtnChKey"
+                                        Margin="165,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        Background="White"
+                                        BorderBrush="White"
+                                        ToolTip="Сменить ключ шифрования">
+                                    <Image Source="../image/key.PNG" />
+                                </Button>
+                                <Button Width="50"
+                                        Name="BtnRecalc"
+                                        Margin="220,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        Background="White"
+                                        BorderBrush="White"
+                                        ToolTip="Передать файл">
+                                    <Image Source="../image/send.PNG" />
+                                </Button>
+                                <Button Width="50"
+                                        Margin="330,2,0,0"
+                                        HorizontalAlignment="Left"
+                                        Background="White"
+                                        BorderBrush="White"
+                                        ToolTip="Пересчитать хэш">
+                                    <Image Source="../image/recalcHash.PNG" />
+                                </Button>
+                                <Button Name="BtnUpdatePrivate"
+                                        Width="50"
+                                        Margin="0,2,0,0"
+                                        HorizontalAlignment="Right"
+                                        Background="White"
+                                        BorderBrush="White"
+                                        ToolTip="Обновить список" Click="BtnUpdatePrivate_Click">
+                                    <Image Source="../image/update.PNG" />
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <ListView x:Name="LvPrivateFiles" BorderBrush="Black">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="100"
+                                                    DisplayMemberBinding="{Binding Path=Name}"
+                                                    Header="Имя" />
+                                    <GridViewColumn Width="100"
+                                                    DisplayMemberBinding="{Binding Path=Size}"
+                                                    Header="Размер" />
+                                    <GridViewColumn Width="100"
+                                                    DisplayMemberBinding="{Binding Path=IsEncrypted}"
+                                                    Header="Зашифрован" />
+                                    <GridViewColumn Width="100"
+                                                    DisplayMemberBinding="{Binding Path=IsDamaged}"
+                                                    Header="Поврежден" />
+                                    <GridViewColumn Width="130"
+                                                    DisplayMemberBinding="{Binding Path=LastDamageCheck}"
+                                                    Header="Последняя проверка" />
+                                    <GridViewColumn Width="130"
+                                                    DisplayMemberBinding="{Binding Path=LoadTime}"
+                                                    Header="Загружен" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Width="100"
+                     Header="Новые файлы"
+                     ToolTip="Файлы, полученные от других пользователей">
+                <Grid />
+            </TabItem>
+            <TabItem Width="130"
+                     Header="Отчеты об отправке"
+                     ToolTip="Состояния отправки файлов другим пользователям">
+                <Grid />
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
