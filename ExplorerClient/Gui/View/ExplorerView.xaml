@@ -17,13 +17,13 @@
             <TabItem Width="200" Header="Общие файлы">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="27" />
+                        <RowDefinition Height="40" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0">
                         <Button Name="BtnSaveToPrivate"
                                 Width="50"
-                                Margin="1,1,0,1"
+                                Margin="175,2,0,0"
                                 HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
@@ -32,7 +32,7 @@
                             <Image Source="../image/save.PNG" />
                         </Button>
                         <Button Width="50"
-                                Margin="56,2,0,0"
+                                Margin="10,2,0,0"
                                 HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
@@ -41,7 +41,7 @@
                         </Button>
                         <Button Name="BtnDelete"
                                 Width="50"
-                                Margin="111,1,0,1"
+                                Margin="65,2,0,0"
                                 HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
@@ -51,7 +51,7 @@
                         </Button>
                         <Button Name="BtnUpload"
                                 Width="50"
-                                Margin="166,2,0,0"
+                                Margin="120,2,0,0"
                                 HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
@@ -91,13 +91,13 @@
             <TabItem Width="200" Header="Личные файлы">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="27" />
+                        <RowDefinition Height="40" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0">
                         <Border BorderBrush="Black">
                             <Grid>
-                                <Button Width="50"
+                                <Button Width="60"
                                         Name="BtnDownloadPrivate"
                                         Margin="0,2,0,0"
                                         HorizontalAlignment="Left"
@@ -106,7 +106,7 @@
                                         ToolTip="Скачать">
                                     <Image Source="../image/download.PNG" />
                                 </Button>
-                                <Button Width="50"
+                                <Button Width="60"
                                         Name="BtnDeletePrivate"
                                         Margin="55,2,0,0"
                                         HorizontalAlignment="Left"
@@ -115,7 +115,7 @@
                                         ToolTip="Удалить">
                                     <Image Source="../image/delete.png" />
                                 </Button>
-                                <Button Width="50"
+                                <Button Width="60"
                                         Name="BtnUploadPrivate"
                                         Margin="110,2,0,0"
                                         HorizontalAlignment="Left"
@@ -124,7 +124,7 @@
                                         ToolTip="Загрузить новый файл">
                                     <Image Source="../image/upload.PNG" />
                                 </Button>
-                                <Button Width="50"
+                                <Button Width="60"
                                         Name="BtnCheckFile"
                                         Margin="275,2,0,0"
                                         HorizontalAlignment="Left"
@@ -133,7 +133,7 @@
                                         ToolTip="Проверить целостность">
                                     <Image Source="../image/hash.PNG" />
                                 </Button>
-                                <Button Width="50"
+                                <Button Width="60"
                                         Name="BtnChKey"
                                         Margin="165,2,0,0"
                                         HorizontalAlignment="Left"
@@ -142,7 +142,7 @@
                                         ToolTip="Сменить ключ шифрования">
                                     <Image Source="../image/key.PNG" />
                                 </Button>
-                                <Button Width="50"
+                                <Button Width="60"
                                         Name="BtnRecalc"
                                         Margin="220,2,0,0"
                                         HorizontalAlignment="Left"
@@ -151,7 +151,7 @@
                                         ToolTip="Передать файл">
                                     <Image Source="../image/send.PNG" />
                                 </Button>
-                                <Button Width="50"
+                                <Button Width="60"
                                         Margin="330,2,0,0"
                                         HorizontalAlignment="Left"
                                         Background="White"
@@ -160,7 +160,7 @@
                                     <Image Source="../image/recalcHash.PNG" />
                                 </Button>
                                 <Button Name="BtnUpdatePrivate"
-                                        Width="50"
+                                        Width="60"
                                         Margin="0,2,0,0"
                                         HorizontalAlignment="Right"
                                         Background="White"
@@ -173,6 +173,14 @@
                     </Grid>
                     <Grid Grid.Row="1">
                         <ListView x:Name="LvPrivateFiles" BorderBrush="Black">
+                            <ListView.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Копировать"></MenuItem>
+                                    <MenuItem Header="Вставить"></MenuItem>
+                                    <MenuItem Header="Вырезать"></MenuItem>
+                                    <MenuItem Header="Удалить"></MenuItem>
+                                </ContextMenu>
+                            </ListView.ContextMenu>
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="100"
@@ -181,9 +189,6 @@
                                     <GridViewColumn Width="100"
                                                     DisplayMemberBinding="{Binding Path=Size}"
                                                     Header="Размер" />
-                                    <GridViewColumn Width="100"
-                                                    DisplayMemberBinding="{Binding Path=IsEncrypted}"
-                                                    Header="Зашифрован" />
                                     <GridViewColumn Width="100"
                                                     DisplayMemberBinding="{Binding Path=IsDamaged}"
                                                     Header="Поврежден" />

@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
+using ExplorerServer.Core.Cryptography;
 using ExplorerServer.Core.DataBase;
 using ExplorerServer.Core.Network;
-using Microsoft.SqlServer.Server;
 using Npgsql;
-using NpgsqlTypes;
 
 namespace ExplorerServer.Core
 {
@@ -114,6 +110,23 @@ namespace ExplorerServer.Core
                 case Commands.GetPrivateFileList:
                     SendPrivateFileList();
                     break;
+                case Commands.DeleteCommonFile:
+                    DeleteCommonFile(message);
+                    break;
+                case Commands.DeletePrivateFile:
+                    DeletePrivateFile(message);
+                    break;
+                case Commands.ChangeFileKey:
+                    ChangeFileKey(message);
+                    break;
+                case Commands.CheckFile:
+                    CheckFile(message);
+                    break;
+                case Commands.RecalcHash:
+                    RecalcHash(message);
+                    break;
+                case Commands.SendFile:
+                    break;
                 default:
                     Console.WriteLine("Получена неизвестная команда");
                     return false;
@@ -193,7 +206,7 @@ namespace ExplorerServer.Core
             return false;
         }
 
-        private bool SendCommonFile(Message message)
+        private void SendCommonFile(Message message)
         {
             string fileId = message.StringMessage;
             string filePath = _dbController.GetCommonFilePath(fileId);
@@ -201,11 +214,11 @@ namespace ExplorerServer.Core
             {
                 SendResult(false, "Файл поврежден или не найден");
                 Console.WriteLine("Файл не найден в файловой системе. Path: " + filePath);
-                return false;
+                return;
             }
             SendResult(true);
             _sslChannel.SendFile(filePath);
-            return true;
+            return;
         }
 
         private void SendResult(bool result, string message = null)
@@ -288,6 +301,96 @@ namespace ExplorerServer.Core
             SendResult(true);
         }
 
+        private void DeleteCommonFile(Message message)
+        {
+            var filePath = _dbController.GetCommonFilePath(message.StringMessage);
+            if (filePath == null)
+            {
+                SendResult(false, "Файл не найден");
+                return;
+            }
+            File.Delete(filePath);
+            _dbController.DeleteCommonFile(message.StringMessage);
+            SendResult(true, String.Empty);
+        }
+
+        private void DeletePrivateFile(Message message)
+        {
+            var filePath = _dbController.GetPrivateFilePath(message.StringMessage);
+            if (filePath == null)
+            {
+                SendResult(false, "Файл не найден");
+                return;
+            }
+            File.Delete(filePath);
+            _dbController.DeletePrivateFile(message.StringMessage);
+            SendResult(true, String.Empty);
+        }
+
+        /// <summary>
+        /// Смена ключа шифрования файла
+        /// Или его установка, если файл еще не зашифрован
+        /// </summary>
+        /// <param name="message"></param>
+        private void ChangeFileKey(Message message)
+        {
+            var fields = message.StringMessage.Split('$');
+            if (fields.Length < 3)
+            {
+                SendResult(false, "Неверные параметры");
+            }
+            SHA1 hash = SHA1.Create();
+            var fileKey = Encoding.Unicode.GetString(hash.ComputeHash(Encoding.Unicode.GetBytes(fields[1])));
+            CryptoController crypto = new CryptoController();
+            var filePath = _dbController.GetPrivateFilePath(fields.First(), fileKey);
+            if (filePath == null)
+            {
+                SendResult(false, "Неверный ключ");
+                return;
+            }
+            crypto.ChangeEncryptKey(filePath, fields[1], fields[2]);
+            fileKey = Encoding.Unicode.GetString(hash.ComputeHash(Encoding.Unicode.GetBytes(fields[2])));
+            _dbController.UpdateFileKey(fields[0], fileKey);
+            SendResult(true, String.Empty);
+        }
+
+        private void CheckFile(Message message)
+        {
+            var filePath = _dbController.GetPrivateFilePath(message.StringMessage);
+            if (filePath == null)
+            {
+                SendResult(false, "Файл не найден");
+                return;
+            }
+            SHA1 hash = SHA1.Create();
+            string fileHash;
+            using (FileStream fs = new FileStream(filePath, FileMode.Open))
+            {
+                fileHash = Encoding.Unicode.GetString(hash.ComputeHash(fs));
+            }
+            var result = _dbController.CheckFileHash(message.StringMessage, fileHash);
+            _dbController.UpdateDamageStatus(message.StringMessage, !result);
+            SendResult(result);
+        }
+
+        private void RecalcHash(Message message)
+        {
+            var filePath = _dbController.GetPrivateFilePath(message.StringMessage);
+            if (filePath == null)
+            {
+                SendResult(false, "Файл не найден");
+                return;
+            }
+            SHA1 hash = SHA1.Create();
+            string fileHash;
+            using (FileStream fs = new FileStream(filePath, FileMode.Open))
+            {
+                fileHash = Encoding.Unicode.GetString(hash.ComputeHash(fs));
+            }
+            _dbController.UpdateFileHash(message.StringMessage, fileHash);
+            SendResult(true);
+        }
+
         #endregion#
 
         #region Other logic
@@ -338,6 +441,7 @@ namespace ExplorerServer.Core
             resultName = "Private\\" + resultName;
             return resultName;
         }
+
 
         #endregion#
 

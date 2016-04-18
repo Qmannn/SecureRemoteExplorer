@@ -52,6 +52,7 @@
     <Compile Include="Core\Client.cs" />
     <Compile Include="Core\Cryptography\CryptoController.cs" />
     <Compile Include="Core\Cryptography\GostCipher.cs" />
+    <Compile Include="Core\Cryptography\RsaCypher.cs" />
     <Compile Include="Core\DataBase\DbController.cs" />
     <Compile Include="Core\Network\Commands.cs" />
     <Compile Include="Core\Network\DeserializationBinder.cs" />

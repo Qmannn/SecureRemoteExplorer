@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.SqlServer.Server;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -12,7 +11,7 @@ namespace ExplorerServer.Core.DataBase
     /// </summary>
     public class DbController
     {
-        private NpgsqlConnection _dbConnection;
+        private readonly NpgsqlConnection _dbConnection;
         private string _userId;
 
         public DbController(NpgsqlConnection dbConnection)
@@ -131,7 +130,8 @@ namespace ExplorerServer.Core.DataBase
             string result = String.Empty;
             lock (_dbConnection)
             {
-                var query = "SELECT count(transfer_id) FROM file_transfer WHERE to_user_id = @userId AND recived = false;";
+                var query =
+                    "SELECT count(transfer_id) FROM file_transfer WHERE to_user_id = @userId AND recived = false;";
                 var command = new NpgsqlCommand(query, _dbConnection);
                 command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
                 try
@@ -167,7 +167,7 @@ namespace ExplorerServer.Core.DataBase
                     if (npgReader.HasRows)
                     {
                         npgReader.Read();
-                        result = (int)npgReader.GetValue(0);
+                        result = (int) npgReader.GetValue(0);
                         npgReader.Close();
                     }
                     npgReader.Close();
@@ -194,7 +194,7 @@ namespace ExplorerServer.Core.DataBase
                     if (npgReader.HasRows)
                     {
                         npgReader.Read();
-                        result = (int)npgReader.GetValue(0);
+                        result = (int) npgReader.GetValue(0);
                         npgReader.Close();
                     }
                     npgReader.Close();
@@ -302,7 +302,7 @@ namespace ExplorerServer.Core.DataBase
 
         public string GetCommonFilePath(string fileId)
         {
-            string path = String.Empty;
+            string path = null;
             lock (_dbConnection)
             {
                 var query = "SELECT file_path FROM common_files WHERE file_id = @fileId";
@@ -331,7 +331,8 @@ namespace ExplorerServer.Core.DataBase
             var result = new List<string>();
             lock (_dbConnection)
             {
-                var query = "SELECT file_id, file_name, size, load_time, login FROM common_files LEFT JOIN users ON users.user_id = common_files.user_id";
+                var query =
+                    "SELECT file_id, file_name, size, load_time, login FROM common_files LEFT JOIN users ON users.user_id = common_files.user_id";
                 NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
                 try
                 {
@@ -439,21 +440,184 @@ namespace ExplorerServer.Core.DataBase
         {
             lock (_dbConnection)
             {
-                var command = "SELECT file_path FROM private_files WHERE file_id = @fileId AND encrypt_key_hash = @keyHash";
+                var command =
+                    "SELECT file_path FROM private_files WHERE file_id = @fileId AND encrypt_key_hash = @keyHash";
                 NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
                 npgCommand.Parameters.Add("@fileId", NpgsqlDbType.Uuid).Value = fileId;
                 npgCommand.Parameters.Add("@keyHash", NpgsqlDbType.Text).Value = keyHash;
-                npgCommand.ExecuteNonQuery();
-                var dbReader = npgCommand.ExecuteReader();
-                if (dbReader.HasRows)
+                try
                 {
-                    dbReader.Read();
-                    var path = dbReader.GetValue(0).ToString();
+                    npgCommand.ExecuteNonQuery();
+                    var dbReader = npgCommand.ExecuteReader();
+                    if (dbReader.HasRows)
+                    {
+                        dbReader.Read();
+                        var path = dbReader.GetValue(0).ToString();
+                        dbReader.Close();
+                        return path;
+                    }
                     dbReader.Close();
-                    return path;
                 }
-                dbReader.Close();
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return null;
+                }
                 return null;
+            }
+        }
+
+        public string GetPrivateFilePath(string fileId)
+        {
+            lock (_dbConnection)
+            {
+                var command = "SELECT file_path FROM private_files WHERE file_id = @fileId";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@fileId", NpgsqlDbType.Uuid).Value = fileId;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                    var dbReader = npgCommand.ExecuteReader();
+                    if (dbReader.HasRows)
+                    {
+                        dbReader.Read();
+                        var path = dbReader.GetValue(0).ToString();
+                        dbReader.Close();
+                        return path;
+                    }
+                    dbReader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return null;
+                }
+                return null;
+            }
+        }
+
+        public void DeleteCommonFile(string fileId)
+        {
+            lock (_dbConnection)
+            {
+                var command = "DELETE FROM common_files WHERE file_id = @fileId";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@fileId", NpgsqlDbType.Uuid).Value = fileId;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+            }
+        }
+
+        public void DeletePrivateFile(string fileId)
+        {
+            lock (_dbConnection)
+            {
+                var command = "DELETE FROM private_files WHERE file_id = @fileId";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@fileId", NpgsqlDbType.Uuid).Value = fileId;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+
+            }
+        }
+
+        public void UpdateFileKey(string fileId, string keyHash)
+        {
+            lock (_dbConnection)
+            {
+                var query =
+                    "UPDATE private_files SET encrypt_key_hash = @keyHash, is_encrypted = 'true' WHERE file_id = @fileId";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@keyHash", NpgsqlDbType.Text).Value = keyHash;
+                command.Parameters.Add("@fileId", NpgsqlDbType.Uuid).Value = fileId;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+            }
+        }
+
+        public bool CheckFileHash(string fileId, string fileHash)
+        {
+            lock (_dbConnection)
+            {
+                var query = "SELECT file_id FROM private_files WHERE file_id = @fileId AND file_hash_sum = @fileHash";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@fileId", NpgsqlDbType.Uuid).Value = fileId;
+                command.Parameters.Add("@fileHash", NpgsqlDbType.Text).Value = fileHash;
+                try
+                {
+                    var reader = command.ExecuteReader();
+                    if (reader.HasRows)
+                    {
+                        reader.Close();
+                        return true;
+                    }
+                    reader.Close();
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return false;
+                }
+            }
+        }
+
+        public void UpdateDamageStatus(string fileId, bool damaged)
+        {
+            lock (_dbConnection)
+            {
+                var query =
+                    "UPDATE private_files SET is_damaged = @damaged, last_hash_check = @time WHERE file_id = @fileId";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@damaged", NpgsqlDbType.Boolean).Value = damaged;
+                command.Parameters.Add("@fileId", NpgsqlDbType.Uuid).Value = fileId;
+                command.Parameters.Add("@time", NpgsqlDbType.Text).Value = DateTime.Now;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+            }
+        }
+
+        public void UpdateFileHash(string fileId, string fileHash)
+        {
+            lock (_dbConnection)
+            {
+                var query =
+                    "UPDATE private_files SET file_hash_sum = @hashSum WHERE file_id = @fileId";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@hashSum", NpgsqlDbType.Text).Value = fileHash;
+                command.Parameters.Add("@fileId", NpgsqlDbType.Uuid).Value = fileId;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
             }
         }
 

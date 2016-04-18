@@ -13,6 +13,12 @@
         PutPrivateFile,
         GetPrivateFile,
         GetCommonFileList,
-        GetPrivateFileList
+        GetPrivateFileList,
+        DeleteCommonFile,
+        DeletePrivateFile,
+        ChangeFileKey,
+        CheckFile,
+        RecalcHash,
+        SendFile
     }
 }

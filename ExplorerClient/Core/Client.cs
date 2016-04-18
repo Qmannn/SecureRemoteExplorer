@@ -379,6 +379,65 @@ namespace ExplorerClient.Core
             return Task.Run(() => GetPrivateFile(fileId, fileName, key));
         }
 
+        public static bool DeleteCommonFile(string fileId)
+        {
+            lock (_sslChannel)
+            {
+                _sslChannel.SendMessage(new Message(Commands.DeleteCommonFile, fileId));
+                var recived = _sslChannel.ReciveMessage();
+                if (recived.Command == Commands.Ok)
+                {
+                    return true;
+                }
+                LastError = recived.StringMessage;
+            }
+            return false;
+        }
+
+        public static bool DeletePrivateFile(string fileId)
+        {
+            lock (_sslChannel)
+            {
+                _sslChannel.SendMessage(new Message(Commands.DeletePrivateFile, fileId));
+                var recived = _sslChannel.ReciveMessage();
+                if (recived.Command == Commands.Ok)
+                {
+                    return true;
+                }
+                LastError = recived.StringMessage;
+            }
+            return false;
+        }
+
+        public static bool ChangeFileKey(string fileId, string oldKey, string newKey)
+        {
+            var message = fileId + "$" + oldKey + "$" + newKey;
+            _sslChannel.SendMessage(new Message(Commands.ChangeFileKey, message));
+            var recived = _sslChannel.ReciveMessage();
+            if (recived.Command != Commands.Ok)
+            {
+                LastError = recived.StringMessage;
+                return false;
+            }
+            return true;
+        }
+
+        public static bool CheckHashFile(string fileId)
+        {
+            _sslChannel.SendMessage(new Message(Commands.CheckFile, fileId));
+            var recived = _sslChannel.ReciveMessage();
+            LastError = recived.StringMessage;
+            return recived.Command == Commands.Ok;
+        }
+
+        public static bool RecalcHash(string fileId)
+        {
+            _sslChannel.SendMessage(new Message(Commands.RecalcHash, fileId));
+            var recived = _sslChannel.ReciveMessage();
+            LastError = recived.StringMessage;
+            return recived.Command == Commands.Ok;
+        }
+
         #region Events
 
         public delegate void OnDisconnectedDelegate();
