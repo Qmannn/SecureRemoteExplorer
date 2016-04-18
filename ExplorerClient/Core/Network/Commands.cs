@@ -19,6 +19,12 @@
         ChangeFileKey,
         CheckFile,
         RecalcHash,
-        SendFile
+        SendFile,
+        CreateShareKey,
+        GetNewFileList,
+        GetReportList,
+        ReciveNewFile,
+        ShareFile,
+        DeleteNewFile
     }
 }

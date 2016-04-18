@@ -61,6 +61,7 @@ namespace ExplorerServer.Core
         #region Private
 
         #region Comunicating with client
+
         private bool MessageHandler(Message message)
         {
             switch (message.Command)
@@ -127,6 +128,21 @@ namespace ExplorerServer.Core
                     break;
                 case Commands.SendFile:
                     break;
+                case Commands.CreateShareKey:
+                    SetNewRsaKeys(message);
+                    break;
+                case Commands.GetNewFileList:
+                    SendNewFileList();
+                    break;
+                case Commands.GetReportList:
+                    SendReportList();
+                    break;
+                case Commands.ReciveNewFile:
+                    break;
+                case Commands.ShareFile:
+                    break;
+                case Commands.DeleteNewFile:
+                    break;
                 default:
                     Console.WriteLine("Получена неизвестная команда");
                     return false;
@@ -144,6 +160,7 @@ namespace ExplorerServer.Core
             try
             {
                 _name = _dbController.Authorization(login, pass);
+                _userId = _dbController.GetUserId(login);
                 return _name != null;
             }
             catch (Exception)
@@ -185,7 +202,7 @@ namespace ExplorerServer.Core
         private bool SetShareStatus(Message message)
         {
             var newStatus = message.StringMessage == true.ToString();
-            if (newStatus && _dbController.GetPublicKey(_userId) == String.Empty)
+            if (newStatus && _dbController.GetPublicKeyPath(_userId) == null)
             {
                 throw new Exception("Ключ для обмена файлами не создан");
             }
@@ -391,6 +408,56 @@ namespace ExplorerServer.Core
             SendResult(true);
         }
 
+        private void SetNewRsaKeys(Message message)
+        {
+            var fileKey = message.StringMessage;
+            var privateFilePath = CreatePrivateKeyFileName();
+            var publicFilePath = CreatePublicKeyFileName();
+            SHA1 hash = SHA1.Create();
+            CryptoController crypto = new CryptoController();
+            try
+            {
+                crypto.CreateAndSaveRsaParameters(publicFilePath, privateFilePath, fileKey);
+            }
+            catch (Exception ex)
+            {
+                SendResult(false, ex.Message);
+                return;
+            }
+            var keyHash = Encoding.Unicode.GetString(hash.ComputeHash(Encoding.Unicode.GetBytes(fileKey)));
+            if (_dbController.GetPublicKeyPath(_userId) == null)
+            {
+                _dbController.AddRsaKey(_userId, privateFilePath, publicFilePath, keyHash);
+            }
+            else
+            {
+                _dbController.UpdateRsaKey(_userId, privateFilePath, publicFilePath, keyHash);
+            }
+            SendResult(true);
+        }
+
+        private void SendNewFileList()
+        {
+            var commonFiles = _dbController.GetNewFileList();
+            foreach (var file in commonFiles)
+            {
+                _sslChannel.SendMessage(new Message(Commands.GetNewFileList, file));
+            }
+            //Сообщение ERROR отправляется как флаг окончания списка
+            _sslChannel.SendMessage(new Message(Commands.Error, String.Empty));
+        }
+
+        private void SendReportList()
+        {
+            var commonFiles = _dbController.GetReportList();
+            foreach (var file in commonFiles)
+            {
+                _sslChannel.SendMessage(new Message(Commands.GetReportList, file));
+            }
+            //Сообщение ERROR отправляется как флаг окончания списка
+            _sslChannel.SendMessage(new Message(Commands.Error, String.Empty));
+        }
+
         #endregion#
 
         #region Other logic
@@ -442,15 +509,25 @@ namespace ExplorerServer.Core
             return resultName;
         }
 
+        private string CreatePrivateKeyFileName()
+        {
+            if (!Directory.Exists("PrivateKeys"))
+            {
+                Directory.CreateDirectory("PrivateKeys");
+            }
+            return "PrivateKeys\\" + _userId + ".prKey";
+        }
+
+        private string CreatePublicKeyFileName()
+        {
+            if (!Directory.Exists("PublicKeys"))
+            {
+                Directory.CreateDirectory("PublicKeys");
+            }
+            return "PublicKeys\\" + _userId + ".pbKey";
+        }
 
         #endregion#
-
-        #region Crypto logic
-
-
-
-        #endregion
-
 
         #endregion
     }

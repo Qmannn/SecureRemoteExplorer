@@ -42,6 +42,15 @@ namespace ExplorerClient.Gui.View
             LvPrivateFiles.ItemsSource = await Client.GetPrivateFileListAsync();
         }
 
+        private async void UpdateNewFiles()
+        {
+            LvNewFiles.ItemsSource = Client.GetNewFileList();
+        }
+
+        private async void UpdateReports()
+        {
+            LvReports.ItemsSource = Client.GetReportList();
+        }
 
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
@@ -56,6 +65,16 @@ namespace ExplorerClient.Gui.View
         private void BtnUpdatePrivate_Click(object sender, RoutedEventArgs e)
         {
             UpdatePrivateFiles();
+        }
+
+        private void BtnUpdateNewFiles_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateNewFiles();
+        }
+
+        private void BtnUpdateReports_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateReports();
         }
     }
 }

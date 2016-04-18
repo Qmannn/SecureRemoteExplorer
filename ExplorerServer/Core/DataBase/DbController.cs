@@ -368,8 +368,10 @@ namespace ExplorerServer.Core.DataBase
                     "SELECT file_id, file_name, file_size, load_time, login, is_damaged, is_encrypted, last_hash_check " +
                     "FROM private_files " +
                     "LEFT JOIN users " +
-                    "ON users.user_id = private_files.user_id";
+                    "ON users.user_id = private_files.user_id " +
+                    "WHERE private_files.user_id = @userId";
                 NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
                 try
                 {
                     var reader = command.ExecuteReader();
@@ -619,6 +621,246 @@ namespace ExplorerServer.Core.DataBase
                     Console.WriteLine("DB error: " + ex.Message);
                 }
             }
+        }
+
+        public string GetPublicKeyPath(string userId)
+        {
+            lock (_dbConnection)
+            {
+                var command =
+                    "SELECT file_path FROM public_key_files WHERE user_id = @userId";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = userId;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                    var dbReader = npgCommand.ExecuteReader();
+                    if (dbReader.HasRows)
+                    {
+                        dbReader.Read();
+                        var path = dbReader.GetValue(0).ToString();
+                        dbReader.Close();
+                        return path;
+                    }
+                    dbReader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        public string GetPrivateKeyPath(string userId, string keyHash)
+        {
+            lock (_dbConnection)
+            {
+                var command =
+                    "SELECT file_path FROM private_key_files WHERE user_id = @userId AND file_key_hash = @keyHash";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = userId;
+                npgCommand.Parameters.Add("@keyHash", NpgsqlDbType.Text).Value = keyHash;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                    var dbReader = npgCommand.ExecuteReader();
+                    if (dbReader.HasRows)
+                    {
+                        dbReader.Read();
+                        var path = dbReader.GetValue(0).ToString();
+                        dbReader.Close();
+                        return path;
+                    }
+                    dbReader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        public void AddRsaKey(string userId, string privateFilePath, string publicFilePath, string keyHash)
+        {
+            lock (_dbConnection)
+            {
+                var query =
+                    "INSERT INTO public_key_files (user_id, file_path) " +
+                    "VALUES (@userId, @path)";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@path", NpgsqlDbType.Text).Value = publicFilePath;
+                command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Не удалось сохранить файл ключа. user_id = " + _userId);
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+
+                query =
+                    "INSERT INTO private_key_files (user_id, file_path, file_key_hash) " +
+                    "VALUES (@userId, @path, @keyHash)";
+                command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@keyHash", NpgsqlDbType.Text).Value = keyHash;
+                command.Parameters.Add("@path", NpgsqlDbType.Text).Value = privateFilePath;
+                command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Не удалось сохранить файл ключа. user_id = " + _userId);
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+            }
+        }
+
+        public void UpdateRsaKey(string userId, string privateFilePath, string publicFilePath, string keyHash)
+        {
+            lock (_dbConnection)
+            {
+                var query = "UPDATE public_key_files SET user_id = @userId, file_path = @path";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@path", NpgsqlDbType.Text).Value = publicFilePath;
+                command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Не удалось сохранить файл ключа. user_id = " + _userId);
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+
+                query = "UPDATE private_key_files SET user_id = @userId, file_path = @path, file_key_hash = @keyHash";
+                command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@keyHash", NpgsqlDbType.Text).Value = keyHash;
+                command.Parameters.Add("@path", NpgsqlDbType.Text).Value = privateFilePath;
+                command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Не удалось сохранить файл ключа. user_id = " + _userId);
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+            }
+        }
+
+        public string GetUserId(string login)
+        {
+            lock (_dbConnection)
+            {
+                var command =
+                    "SELECT user_id FROM users WHERE login = @login";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@login", NpgsqlDbType.Text).Value = login;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                    var dbReader = npgCommand.ExecuteReader();
+                    if (dbReader.HasRows)
+                    {
+                        dbReader.Read();
+                        var path = dbReader.GetValue(0).ToString();
+                        dbReader.Close();
+                        return path;
+                    }
+                    dbReader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        public List<string> GetNewFileList()
+        {
+            var result = new List<string>();
+            lock (_dbConnection)
+            {
+                var query =
+                    "SELECT name, comment, send_time, file_name, transfer_id " +
+                    "FROM file_transfer " +
+                    "LEFT JOIN users ON users.user_id = file_transfer.from_user_id " +
+                    "WHERE recived = 'false' AND to_user_id = @userId";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
+                try
+                {
+                    var reader = command.ExecuteReader();
+                    while (reader.HasRows)
+                    {
+                        reader.Read();
+                        string file = "";
+                        file += reader.GetValue(0) + "$";
+                        file += reader.GetValue(1) + "$";
+                        file += reader.GetValue(2) + "$";
+                        file += reader.GetValue(3) + "$";
+                        file += reader.GetValue(4).ToString();
+                        result.Add(file);
+                    }
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return result;
+                }
+            }
+            return result;
+        }
+
+        public List<string> GetReportList()
+        {
+            var result = new List<string>();
+            lock (_dbConnection)
+            {
+                var query =
+                    "SELECT name, comment, send_time, file_name, transfer_id, recived " +
+                    "FROM file_transfer " +
+                    "LEFT JOIN users ON users.user_id = file_transfer.to_user_id " +
+                    "WHERE from_user_id = @userId";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
+                try
+                {
+                    var reader = command.ExecuteReader();
+                    while (reader.HasRows)
+                    {
+                        reader.Read();
+                        string file = "";
+                        file += reader.GetValue(0) + "$";
+                        file += reader.GetValue(1) + "$";
+                        file += reader.GetValue(2) + "$";
+                        file += reader.GetValue(3) + "$";
+                        file += reader.GetValue(4) + "$";
+                        file += reader.GetValue(5).ToString();
+                        result.Add(file);
+                    }
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return result;
+                }
+            }
+            return result;
         }
 
         #endregion

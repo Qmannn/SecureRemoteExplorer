@@ -438,6 +438,69 @@ namespace ExplorerClient.Core
             return recived.Command == Commands.Ok;
         }
 
+        public static bool CreateShareKey(string key)
+        {
+            _sslChannel.SendMessage(new Message(Commands.CreateShareKey, key));
+            return _sslChannel.ReciveMessage().Command == Commands.Ok;
+        }
+
+        public static List<SentFile> GetNewFileList()
+        {
+            lock (_sslChannel)
+            {
+                _sslChannel.SendMessage(new Message(Commands.GetNewFileList, String.Empty));
+                var recivedMessage = _sslChannel.ReciveMessage();
+                var result = new List<SentFile>();
+                while (recivedMessage.Command == Commands.GetNewFileList)
+                {
+                    var fields = recivedMessage.StringMessage.Split('$');
+                    recivedMessage = _sslChannel.ReciveMessage();
+                    if (fields.Length < 5)
+                    {
+                        continue;
+                    }
+                    result.Add(new SentFile()
+                    {
+                        From = fields[0],
+                        Comment = fields[1],
+                        SendTime = fields[2],
+                        Name = fields[3],
+                        Uuid = fields[4]
+                    });
+                }
+                return result;
+            }
+        }
+
+        public static List<SentFile> GetReportList()
+        {
+            lock (_sslChannel)
+            {
+                _sslChannel.SendMessage(new Message(Commands.GetReportList, String.Empty));
+                var recivedMessage = _sslChannel.ReciveMessage();
+                var result = new List<SentFile>();
+                while (recivedMessage.Command == Commands.GetReportList)
+                {
+                    var fields = recivedMessage.StringMessage.Split('$');
+                    recivedMessage = _sslChannel.ReciveMessage();
+                    if (fields.Length < 6)
+                    {
+                        continue;
+                    }
+                    result.Add(new SentFile()
+                    {
+                        To = fields[0],
+                        Comment = fields[1],
+                        SendTime = fields[2],
+                        Name = fields[3],
+                        Uuid = fields[4],
+                        Recived = fields[5]
+                    });
+                }
+                return result;
+            }
+        }
+
         #region Events
 
         public delegate void OnDisconnectedDelegate();

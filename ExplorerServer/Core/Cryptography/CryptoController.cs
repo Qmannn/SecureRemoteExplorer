@@ -71,7 +71,7 @@ namespace ExplorerServer.Core.Cryptography
                         bytes = bytes.Concat(subBytes).ToArray();
                     }
                     bytes = _gost.Encode(bytes, keyBytes);
-                    fs.Position -= bytes.Length;
+                    fs.Position = 0;
                     fs.Write(bytes, 0, bytes.Length);
                 }
             }
