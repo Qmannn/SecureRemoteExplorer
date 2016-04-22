@@ -39,7 +39,7 @@ namespace ExplorerClient.Gui.View
             }
             if (!Client.Connected)
             {
-                await Client.ConnectAsync("localhost", 3000);
+                await Client.ConnectAsync("192.168.0.103", 3000);
                 if (!Client.Connected)
                 {
                     MessageBox.Show("Не удалось подключиться к серверу\nПопробуйте позже", "Ошибка подключения", MessageBoxButton.OK,

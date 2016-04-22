@@ -80,7 +80,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Gui\View\CreateCryptoKeys.xaml">
+    <Page Include="Gui\View\DialogWindows\GetKeyDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Gui\View\DialogWindows\ShareFileDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -88,7 +92,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Gui\View\LoginView.xaml">
+    <Page Include="Gui\View\DialogWindows\LoginView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -106,16 +110,21 @@
     <Compile Include="Core\Network\SslChannel.cs" />
     <Compile Include="Core\RemoteFile.cs" />
     <Compile Include="Core\SentFile.cs" />
+    <Compile Include="Core\User.cs" />
+    <Compile Include="Gui\StaticValueBox.cs" />
     <Compile Include="Gui\View\ChangePassView.xaml.cs">
       <DependentUpon>ChangePassView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Gui\View\CreateCryptoKeys.xaml.cs">
-      <DependentUpon>CreateCryptoKeys.xaml</DependentUpon>
+    <Compile Include="Gui\View\DialogWindows\GetKeyDialog.xaml.cs">
+      <DependentUpon>GetKeyDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Gui\View\DialogWindows\ShareFileDialog.xaml.cs">
+      <DependentUpon>ShareFileDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Gui\View\ExplorerView.xaml.cs">
       <DependentUpon>ExplorerView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Gui\View\LoginView.xaml.cs">
+    <Compile Include="Gui\View\DialogWindows\LoginView.xaml.cs">
       <DependentUpon>LoginView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Gui\View\MainView.xaml.cs">

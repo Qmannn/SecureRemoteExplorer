@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.RightsManagement;
-using System.Threading;
+using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
 using ExplorerClient.Core.Network;
-using ExplorerClient.Gui.View;
-using Microsoft.SqlServer.Server;
 
 namespace ExplorerClient.Core
 {
@@ -19,17 +13,17 @@ namespace ExplorerClient.Core
 
         #region members
 
-        private static SslChannel _sslChannel = null;
+        private static SslChannel _sslChannel;
 
-        public static string Host { get; private set; }
-        public static int Port { get; private set; }
+        public static string Host { get; set; }
+        public static int Port { get; set; }
 
         public static string Name { get; set; }
         public static string Login { get; set; }
         public static string Password { get; set; }
 
         public static bool Connected => _sslChannel?.Connected ?? false;
-        public static bool IsAuthorized = false;
+        public static bool IsAuthorized;
         public static string LastError { get; set; }
 
         #endregion
@@ -66,11 +60,14 @@ namespace ExplorerClient.Core
 
         public static void Authorization(string login, string pass)
         {
-            string command = login + "$" + pass;
-            _sslChannel.SendMessage(new Message(Commands.Login, command));
-            var recivedCommand = _sslChannel.ReciveMessage();
-            Name = recivedCommand.StringMessage;
-            IsAuthorized = recivedCommand.Command == Commands.Ok;
+            lock (_sslChannel)
+            {
+                string command = login + "$" + pass;
+                _sslChannel.SendMessage(new Message(Commands.Login, command));
+                var recivedCommand = _sslChannel.ReciveMessage();
+                Name = recivedCommand.StringMessage;
+                IsAuthorized = recivedCommand.Command == Commands.Ok;
+            }
         }
 
         /// <summary>
@@ -89,19 +86,22 @@ namespace ExplorerClient.Core
 
         public static string[] GetUserState()
         {
-            Message recivedMessage = null;
-            try
+            lock (_sslChannel)
             {
-                _sslChannel.SendMessage(new Message(Commands.GetUserState, String.Empty));
-                recivedMessage = _sslChannel.ReciveMessage();
+                Message recivedMessage;
+                try
+                {
+                    _sslChannel.SendMessage(new Message(Commands.GetUserState, String.Empty));
+                    recivedMessage = _sslChannel.ReciveMessage();
+                }
+                catch (Exception ex)
+                {
+                    LastError = ex.Message;
+                    return null;
+                }
+                return recivedMessage?.StringMessage.Split('$');
             }
-            catch (Exception ex)
-            {
-                LastError = ex.Message;
-                return null;
-            }
-            return recivedMessage?.StringMessage.Split('$');
-;        }
+        }
 
         /// <summary>
         /// Асинхронное получение статистики пользователя
@@ -114,22 +114,25 @@ namespace ExplorerClient.Core
 
         public static bool ChangePassword(string pass)
         {
-            Message recivedMessage = null;
-            try
+            lock (_sslChannel)
             {
-                _sslChannel.SendMessage(new Message(Commands.ChangePass, pass));
-                recivedMessage = _sslChannel.ReciveMessage();
+                Message recivedMessage;
+                try
+                {
+                    _sslChannel.SendMessage(new Message(Commands.ChangePass, pass));
+                    recivedMessage = _sslChannel.ReciveMessage();
+                }
+                catch (Exception ex)
+                {
+                    LastError = ex.Message;
+                    return false;
+                }
+                if (recivedMessage?.Command == Commands.Error)
+                {
+                    LastError = recivedMessage.StringMessage;
+                }
+                return recivedMessage?.Command == Commands.Ok;
             }
-            catch (Exception ex)
-            {
-                LastError = ex.Message;
-                return false;
-            }
-            if (recivedMessage?.Command == Commands.Error)
-            {
-                LastError = recivedMessage.StringMessage;
-            }
-            return recivedMessage?.Command == Commands.Ok;
         }
 
         /// <summary>
@@ -144,21 +147,24 @@ namespace ExplorerClient.Core
 
         public static bool SetShareStatus(bool allow)
         {
-            Message recivedMessage;
-            try
+            lock (_sslChannel)
             {
-                _sslChannel.SendMessage(new Message(Commands.SetShareStatus, allow.ToString()));
-                recivedMessage = _sslChannel.ReciveMessage();
+                Message recivedMessage;
+                try
+                {
+                    _sslChannel.SendMessage(new Message(Commands.SetShareStatus, allow.ToString()));
+                    recivedMessage = _sslChannel.ReciveMessage();
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+                if (recivedMessage?.Command == Commands.Error)
+                {
+                    LastError = recivedMessage.StringMessage;
+                }
+                return recivedMessage?.Command == Commands.Ok;
             }
-            catch (Exception)
-            {
-                return false;
-            }
-            if (recivedMessage?.Command == Commands.Error)
-            {
-                LastError = recivedMessage.StringMessage;
-            }
-            return recivedMessage?.Command == Commands.Ok;
         }
 
         /// <summary>
@@ -173,15 +179,24 @@ namespace ExplorerClient.Core
 
         public static bool PutCommonFile(string fileName)
         {
-            try
+            lock (_sslChannel)
             {
-                _sslChannel.SendMessage(new Message(Commands.PutCommonFile, fileName));
-                return _sslChannel.SendFile(fileName);
-            }
-            catch (Exception ex)
-            {
-                LastError = ex.Message;
-                return false;
+                try
+                {
+                    _sslChannel.SendMessage(new Message(Commands.PutCommonFile, fileName.Split('\\').Last()));
+                    var recived = _sslChannel.ReciveMessage();
+                    if (recived.Command != Commands.Ok)
+                    {
+                        LastError = recived.StringMessage;
+                        return false;
+                    }
+                    return _sslChannel.SendFile(fileName);
+                }
+                catch (Exception ex)
+                {
+                    LastError = ex.Message;
+                    return false;
+                }
             }
         }
 
@@ -197,17 +212,26 @@ namespace ExplorerClient.Core
 
         public static bool GetCommonFile(string fileId, string fileName)
         {
-            try
+            lock (_sslChannel)
             {
-                _sslChannel.SendMessage(new Message(Commands.GetCommonFile, fileId));
-                _sslChannel.ReciveFile(fileName);
+                try
+                {
+                    _sslChannel.SendMessage(new Message(Commands.GetCommonFile, fileId));
+                    var recived = _sslChannel.ReciveMessage();
+                    if (recived.Command != Commands.Ok)
+                    {
+                        LastError = recived.StringMessage;
+                        return false;
+                    }
+                    _sslChannel.ReciveFile(fileName);
+                }
+                catch (Exception ex)
+                {
+                    LastError = ex.Message;
+                    return false;
+                }
+                return true;
             }
-            catch (Exception ex)
-            {
-                LastError = ex.Message;
-                return false;
-            }
-            return true;
         }
 
         /// <summary>
@@ -323,18 +347,21 @@ namespace ExplorerClient.Core
 
         public static bool PutPrivateFile(string fileName, string key = null, bool mustEncrypt = true)
         {
-            if (!File.Exists(fileName))
+            lock (_sslChannel)
             {
-                return false;
+                if (!File.Exists(fileName))
+                {
+                    return false;
+                }
+                var stringMessage = fileName.Split('\\').Last() + "$" + (key ?? String.Empty) + "$" + mustEncrypt;
+                _sslChannel.SendMessage(new Message(Commands.PutPrivateFile, stringMessage));
+                if (_sslChannel.ReciveMessage().Command != Commands.Ok)
+                {
+                    return false;
+                }
+                _sslChannel.SendFile(fileName);
+                return _sslChannel.ReciveMessage().Command == Commands.Ok;
             }
-            var stringMessage = fileName + "$" + (key ?? String.Empty) + "$" + mustEncrypt;
-            _sslChannel.SendMessage(new Message(Commands.PutPrivateFile, stringMessage));
-            if (_sslChannel.ReciveMessage().Command != Commands.Ok)
-            {
-                return false;
-            }
-            _sslChannel.SendFile(fileName);
-            return _sslChannel.ReciveMessage().Command == Commands.Ok;
         }
 
         /// <summary>
@@ -351,19 +378,22 @@ namespace ExplorerClient.Core
 
         public static bool GetPrivateFile(string fileId, string fileName, string key = null)
         {
-            var stringMessage = fileId + "$" + (key ?? String.Empty);
-            _sslChannel.SendMessage(new Message(Commands.GetPrivateFile, stringMessage));
-            var recived = _sslChannel.ReciveMessage();
-            if (recived.Command != Commands.Ok)
+            lock (_sslChannel)
             {
+                var stringMessage = fileId + "$" + (key ?? String.Empty);
+                _sslChannel.SendMessage(new Message(Commands.GetPrivateFile, stringMessage));
+                var recived = _sslChannel.ReciveMessage();
+                if (recived.Command != Commands.Ok)
+                {
+                    LastError = recived.StringMessage;
+                    return false;
+                }
+                _sslChannel.ReciveFile(fileName);
+                recived = _sslChannel.ReciveMessage();
+                if (recived.Command == Commands.Ok)
+                    return true;
                 LastError = recived.StringMessage;
-                return false;
             }
-            _sslChannel.ReciveFile(fileName);
-            recived = _sslChannel.ReciveMessage();
-            if (recived.Command == Commands.Ok)
-                return true;
-            LastError = recived.StringMessage;
             return false;
         }
 
@@ -394,6 +424,22 @@ namespace ExplorerClient.Core
             return false;
         }
 
+        public static Task<bool> DeleteCommonFileAsync(string fileId)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return DeleteCommonFile(fileId);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+            });
+        }
+
         public static bool DeletePrivateFile(string fileId)
         {
             lock (_sslChannel)
@@ -409,39 +455,131 @@ namespace ExplorerClient.Core
             return false;
         }
 
+        public static Task<bool> DeletePrivateFileAsync(string fileId)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return DeletePrivateFile(fileId);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+            });
+        }
+
         public static bool ChangeFileKey(string fileId, string oldKey, string newKey)
         {
-            var message = fileId + "$" + oldKey + "$" + newKey;
-            _sslChannel.SendMessage(new Message(Commands.ChangeFileKey, message));
-            var recived = _sslChannel.ReciveMessage();
-            if (recived.Command != Commands.Ok)
+            lock (_sslChannel)
             {
-                LastError = recived.StringMessage;
-                return false;
+                var message = fileId + "$" + oldKey + "$" + newKey;
+                _sslChannel.SendMessage(new Message(Commands.ChangeFileKey, message));
+                var recived = _sslChannel.ReciveMessage();
+                if (recived.Command != Commands.Ok)
+                {
+                    LastError = recived.StringMessage;
+                    return false;
+                }
             }
             return true;
         }
 
+        public static Task<bool> ChangeFileKeyAsync(string fileId, string oldKey, string newKey)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return ChangeFileKey(fileId, oldKey, newKey);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+            });
+        }
+
         public static bool CheckHashFile(string fileId)
         {
-            _sslChannel.SendMessage(new Message(Commands.CheckFile, fileId));
-            var recived = _sslChannel.ReciveMessage();
-            LastError = recived.StringMessage;
-            return recived.Command == Commands.Ok;
+            lock (_sslChannel)
+            {
+                _sslChannel.SendMessage(new Message(Commands.CheckFile, fileId));
+                var recived = _sslChannel.ReciveMessage();
+                LastError = recived.StringMessage;
+                return recived.Command == Commands.Ok;
+            }
+        }
+
+        public static Task<bool> CheckHashFileAsync(string fileId)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return CheckHashFile(fileId);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+            });
         }
 
         public static bool RecalcHash(string fileId)
         {
-            _sslChannel.SendMessage(new Message(Commands.RecalcHash, fileId));
-            var recived = _sslChannel.ReciveMessage();
-            LastError = recived.StringMessage;
-            return recived.Command == Commands.Ok;
+            lock (_sslChannel)
+            {
+                _sslChannel.SendMessage(new Message(Commands.RecalcHash, fileId));
+                var recived = _sslChannel.ReciveMessage();
+                LastError = recived.StringMessage;
+                return recived.Command == Commands.Ok;
+            }
+        }
+
+        public static Task<bool> RecalcHashAsync(string fileId)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return RecalcHash(fileId);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+            });
         }
 
         public static bool CreateShareKey(string key)
         {
-            _sslChannel.SendMessage(new Message(Commands.CreateShareKey, key));
-            return _sslChannel.ReciveMessage().Command == Commands.Ok;
+            lock (_sslChannel)
+            {
+                _sslChannel.SendMessage(new Message(Commands.CreateShareKey, key));
+                return _sslChannel.ReciveMessage().Command == Commands.Ok;
+            }
+        }
+
+        public static Task<bool> CreateShareKeyAsync(string key)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return CreateShareKey(key);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+            });
         }
 
         public static List<SentFile> GetNewFileList()
@@ -472,6 +610,21 @@ namespace ExplorerClient.Core
             }
         }
 
+        public static Task<List<SentFile>> GetNewFileListAsync()
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return GetNewFileList();
+                }
+                catch (Exception)
+                {
+                    return new List<SentFile>();
+                }
+            });
+        }
+
         public static List<SentFile> GetReportList()
         {
             lock (_sslChannel)
@@ -499,6 +652,162 @@ namespace ExplorerClient.Core
                 }
                 return result;
             }
+        }
+
+        public static Task<List<SentFile>> GetReportListAsync()
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return GetReportList();
+                }
+                catch (Exception)
+                {
+                    return new List<SentFile>();
+                }
+            });
+        }
+
+        public static bool ShareFile(string toUserId, string fileId, string filename, string fileKey, string comment)
+        {
+            lock (_sslChannel)
+            {
+                var message = toUserId + "$";
+                message += fileId + "$";
+                message += filename + "$";
+                message += fileKey + "$";
+                message += comment;
+                _sslChannel.SendMessage(new Message(Commands.ShareFile, message));
+                var recived = _sslChannel.ReciveMessage();
+                if (recived.Command != Commands.Ok)
+                {
+                    LastError = recived.StringMessage;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static Task<bool> ShareFileAsync(string toUserId, string fileId, string filename, string fileKey, string comment)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return ShareFile(toUserId, fileId, filename, fileKey, comment);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+            });
+        }
+
+        public static bool ReciveNewFile(string transferId, string shareKey, string newFileKey)
+        {
+            lock (_sslChannel)
+            {
+                var message = transferId + "$";
+                message += shareKey + "$";
+                message += newFileKey + "$";
+                _sslChannel.SendMessage(new Message(Commands.ReciveNewFile, message));
+                var recived = _sslChannel.ReciveMessage();
+                if (recived.Command != Commands.Ok)
+                {
+                    LastError = recived.StringMessage;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static Task<bool> ReciveNewFileAsync(string transferId, string shareKey, string newFileKey)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return ReciveNewFile(transferId, shareKey, newFileKey);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+            });
+        }
+
+        public static bool DeleteNewFile(string transferId)
+        {
+            lock (_sslChannel)
+            {
+                _sslChannel.SendMessage(new Message(Commands.DeleteNewFile, transferId));
+                var recived = _sslChannel.ReciveMessage();
+                if (recived.Command != Commands.Ok)
+                {
+                    LastError = recived.StringMessage;
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        public static Task<bool> DeleteNewFileAsync(string transferId)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return DeleteNewFile(transferId);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
+        }
+
+        public static List<User> GetUserList()
+        {
+            lock (_sslChannel)
+            {
+                _sslChannel.SendMessage(new Message(Commands.GetUserList, String.Empty));
+                var recivedMessage = _sslChannel.ReciveMessage();
+                var result = new List<User>();
+                while (recivedMessage.Command == Commands.GetUserList)
+                {
+                    var fields = recivedMessage.StringMessage.Split('$');
+                    if (fields.Length < 2)
+                    {
+                        continue;
+                    }
+                    result.Add(new User()
+                    {
+                        Name = fields[0],
+                        Uuid = fields[1]
+                    });
+                    recivedMessage = _sslChannel.ReciveMessage();
+                }
+                return result;
+            }
+
+        }
+
+        public static Task<List<User>> GetUserListAsync()
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return GetUserList();
+                }
+                catch (Exception)
+                {
+                    return new List<User>();
+                }
+            });
         }
 
         #region Events

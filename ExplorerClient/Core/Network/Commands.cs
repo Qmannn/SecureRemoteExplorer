@@ -25,6 +25,7 @@
         GetReportList,
         ReciveNewFile,
         ShareFile,
-        DeleteNewFile
+        DeleteNewFile,
+        GetUserList
     }
 }

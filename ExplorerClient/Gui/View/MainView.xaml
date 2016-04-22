@@ -11,7 +11,7 @@
         MinWidth="500"
         MinHeight="300"
         ToolTip=""
-        mc:Ignorable="d">
+        mc:Ignorable="d" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid Name="WorkGrid" IsVisibleChanged="WorkGrid_OnIsVisibleChanged">
             <GroupBox x:Name="GroupBox"

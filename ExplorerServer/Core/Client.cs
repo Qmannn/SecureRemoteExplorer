@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -94,7 +95,7 @@ namespace ExplorerServer.Core
                     _sslChannel.SendMessage(new Message(setStatusResult ? Commands.Ok : Commands.Error, String.Empty));
                     break;
                 case Commands.PutCommonFile:
-                    SendResult(ReciveCommonFile(message));
+                    ReciveCommonFile(message);
                     break;
                 case Commands.GetCommonFile:
                     SendCommonFile(message);
@@ -138,10 +139,16 @@ namespace ExplorerServer.Core
                     SendReportList();
                     break;
                 case Commands.ReciveNewFile:
+                    ReciveNewFile(message);
                     break;
                 case Commands.ShareFile:
+                    ShareFile(message);
                     break;
                 case Commands.DeleteNewFile:
+                    DeleteNewFile(message);
+                    break;
+                case Commands.GetUserList:
+                    SendUserList();
                     break;
                 default:
                     Console.WriteLine("Получена неизвестная команда");
@@ -155,8 +162,7 @@ namespace ExplorerServer.Core
             string pass = loginMessage.StringMessage.Split('$').Last();
             _login = login;
             var sha1 = SHA1.Create();
-
-            pass = Encoding.UTF8.GetString(sha1.ComputeHash(Encoding.UTF8.GetBytes(pass)));
+            pass = ByteToStringConverter(sha1.ComputeHash(StringToByteConverter(pass)));
             try
             {
                 _name = _dbController.Authorization(login, pass);
@@ -191,7 +197,7 @@ namespace ExplorerServer.Core
 
             var sha1 = SHA1.Create();
 
-            var pass = Encoding.UTF8.GetString(sha1.ComputeHash(Encoding.UTF8.GetBytes(passMessage.StringMessage)));
+            var pass = ByteToStringConverter(sha1.ComputeHash(StringToByteConverter(passMessage.StringMessage)));
             if (!_dbController.SetNewPassword(pass))
             {
                 return false;
@@ -212,6 +218,7 @@ namespace ExplorerServer.Core
         private bool ReciveCommonFile(Message message)
         {
             string fileName = CreateCommonFileName(message.StringMessage);
+            SendResult(true);
             if (_sslChannel.ReciveFile(fileName))
             {
                 var fileSize = new FileInfo(fileName).Length.ToString();
@@ -287,9 +294,9 @@ namespace ExplorerServer.Core
             }
             using (FileStream fs = new FileStream(fileName, FileMode.Open))
             {
-                fileHash = Encoding.Unicode.GetString(hashCalc.ComputeHash(fs));
+                fileHash = ByteToStringConverter(hashCalc.ComputeHash(fs));
             }
-            string keyHash = Encoding.Unicode.GetString(hashCalc.ComputeHash(Encoding.Unicode.GetBytes(fields[1])));
+            string keyHash = ByteToStringConverter(hashCalc.ComputeHash(StringToByteConverter(fields[1])));
             string fileSize = new FileInfo(fileName).Length.ToString();
             if (!_dbController.SaveNewPrivateFile(fields[0], fileName, fileSize, fileHash, fields[2] == true.ToString(),
                 keyHash))
@@ -306,7 +313,7 @@ namespace ExplorerServer.Core
             var fileId = message.StringMessage.Split('$').First();
             var fileKey = message.StringMessage.Split('$').Last();
             SHA1 hashCalc = SHA1.Create();
-            var keyHash = Encoding.Unicode.GetString(hashCalc.ComputeHash(Encoding.Unicode.GetBytes(fileKey)));
+            var keyHash = ByteToStringConverter(hashCalc.ComputeHash(StringToByteConverter(fileKey)));
             var filePath = _dbController.GetPrivateFilePath(fileId, keyHash);
             if (filePath == null)
             {
@@ -357,7 +364,7 @@ namespace ExplorerServer.Core
                 SendResult(false, "Неверные параметры");
             }
             SHA1 hash = SHA1.Create();
-            var fileKey = Encoding.Unicode.GetString(hash.ComputeHash(Encoding.Unicode.GetBytes(fields[1])));
+            var fileKey = ByteToStringConverter(hash.ComputeHash(StringToByteConverter(fields[1])));
             CryptoController crypto = new CryptoController();
             var filePath = _dbController.GetPrivateFilePath(fields.First(), fileKey);
             if (filePath == null)
@@ -366,7 +373,7 @@ namespace ExplorerServer.Core
                 return;
             }
             crypto.ChangeEncryptKey(filePath, fields[1], fields[2]);
-            fileKey = Encoding.Unicode.GetString(hash.ComputeHash(Encoding.Unicode.GetBytes(fields[2])));
+            fileKey = ByteToStringConverter(hash.ComputeHash(StringToByteConverter(fields[2])));
             _dbController.UpdateFileKey(fields[0], fileKey);
             SendResult(true, String.Empty);
         }
@@ -383,7 +390,7 @@ namespace ExplorerServer.Core
             string fileHash;
             using (FileStream fs = new FileStream(filePath, FileMode.Open))
             {
-                fileHash = Encoding.Unicode.GetString(hash.ComputeHash(fs));
+                fileHash = ByteToStringConverter(hash.ComputeHash(fs));
             }
             var result = _dbController.CheckFileHash(message.StringMessage, fileHash);
             _dbController.UpdateDamageStatus(message.StringMessage, !result);
@@ -402,7 +409,7 @@ namespace ExplorerServer.Core
             string fileHash;
             using (FileStream fs = new FileStream(filePath, FileMode.Open))
             {
-                fileHash = Encoding.Unicode.GetString(hash.ComputeHash(fs));
+                fileHash = ByteToStringConverter(hash.ComputeHash(fs));
             }
             _dbController.UpdateFileHash(message.StringMessage, fileHash);
             SendResult(true);
@@ -424,7 +431,7 @@ namespace ExplorerServer.Core
                 SendResult(false, ex.Message);
                 return;
             }
-            var keyHash = Encoding.Unicode.GetString(hash.ComputeHash(Encoding.Unicode.GetBytes(fileKey)));
+            var keyHash = ByteToStringConverter(hash.ComputeHash(StringToByteConverter(fileKey)));
             if (_dbController.GetPublicKeyPath(_userId) == null)
             {
                 _dbController.AddRsaKey(_userId, privateFilePath, publicFilePath, keyHash);
@@ -453,6 +460,144 @@ namespace ExplorerServer.Core
             foreach (var file in commonFiles)
             {
                 _sslChannel.SendMessage(new Message(Commands.GetReportList, file));
+            }
+            //Сообщение ERROR отправляется как флаг окончания списка
+            _sslChannel.SendMessage(new Message(Commands.Error, String.Empty));
+        }
+
+        private void ShareFile(Message message)
+        {
+            var fields = message.StringMessage.Split('$');
+            if (fields.Length < 5)
+            {
+                SendResult(false, "Параметры неверны");
+            }
+            var userIdTo = fields[0];
+            var fileId = fields[1];
+            var fileName = fields[2];
+            var fileKey = fields[3];
+            var comment = fields[4];
+            var sendFilePath = CreatePrivateFileName(fileName);
+            SHA1 hash = SHA1.Create();
+            var fileKeyHash = ByteToStringConverter(hash.ComputeHash(StringToByteConverter(fileKey)));
+            var filePath = _dbController.GetPrivateFilePath(fileId, fileKeyHash);
+            if (filePath == null)
+            {
+                SendResult(false, "Неверный ключ");
+                return;
+            }
+            if (!File.Exists(filePath))
+            {
+                SendResult(false, "Файл не найден в файловой системе. Ошибка сервера");
+                Console.WriteLine("Файл не найден в файловой системе: " + filePath);
+                return;
+            }
+            try
+            {
+                File.Copy(filePath, sendFilePath);
+            }
+            catch (Exception)
+            {
+                SendResult(false, "Не удалось отправть файл");
+                return;
+            }
+            var rsaPublicFile = _dbController.GetPublicKeyPath(userIdTo);
+            if (String.IsNullOrEmpty(rsaPublicFile))
+            {
+                SendResult(false, "Пользователь не имеет открытого ключа");
+                try
+                {
+                    File.Delete(sendFilePath);
+                }
+                catch (Exception)
+                {
+                    //
+                }
+                return;
+            }
+            var newFileKey = GenerateNewFileKey(10);
+            CryptoController crypto = new CryptoController();
+            crypto.ChangeEncryptKey(sendFilePath, fileKey, newFileKey);
+            newFileKey = ByteToStringConverter(crypto.EncryptDataWithRsaFile(rsaPublicFile,
+                    StringToByteConverter(newFileKey)));
+            _dbController.ShareFile(sendFilePath, fileName, userIdTo, newFileKey, comment);
+            SendResult(true);
+        }
+
+        private void ReciveNewFile(Message message)
+        {
+            var fields = message.StringMessage.Split('$');
+            if (fields.Length < 3)
+            {
+                SendResult(false, "Параметры неверны");
+            }
+            var transferId = fields[0];
+            var rsaParamKey = fields[1];
+            var newFileKey = fields[2];
+            var transferParams = _dbController.GetTransferParams(transferId);
+            if (transferParams == null)
+            {
+                SendResult(false, "Файл не найден");
+                return;
+            }
+            SHA1 hash = SHA1.Create();
+            var rsaParamsKeyHash = ByteToStringConverter(hash.ComputeHash(StringToByteConverter(rsaParamKey)));
+            var rsaFilePath = _dbController.GetPrivateKeyPath(_userId, rsaParamsKeyHash);
+            if (rsaFilePath == null)
+            {
+                SendResult(false, "Неверный ключ обмена");
+                return;
+            }
+            CryptoController crypto = new CryptoController();
+            var oldFileKeyBytes = crypto.DecryptDataWithRsaFile(rsaFilePath, rsaParamKey,
+                StringToByteConverter(transferParams[2]));
+            if (oldFileKeyBytes == null)
+            {
+                SendResult(false, "Ошибка извлечения ключа файла");
+                return;
+            }
+            var oldFileKey = ByteToStringConverter(oldFileKeyBytes);
+            crypto.ChangeEncryptKey(transferParams[0], oldFileKey, newFileKey);
+            string fileHash;
+            string fileLength;
+            using (FileStream fs = new FileStream(transferParams[0], FileMode.Open))
+            {
+                fileHash = ByteToStringConverter(hash.ComputeHash(fs));
+                fileLength = fs.Length.ToString();
+            }
+            var newFileHash = ByteToStringConverter(hash.ComputeHash(StringToByteConverter(newFileKey)));
+            _dbController.SaveNewPrivateFile(transferParams[1], transferParams[0],
+                fileLength, fileHash, true, newFileHash);
+            _dbController.UpdateTransferStatus(transferId);
+            SendResult(true);
+        }
+
+        private void DeleteNewFile(Message message)
+        {
+            var transferParams = _dbController.GetTransferParams(message.StringMessage);
+            if (transferParams.Length < 3)
+            {
+                SendResult(false);
+                return;
+            }
+            try
+            {
+                File.Delete(transferParams[0]);
+            }
+            catch (Exception)
+            {
+                //
+            }
+            _dbController.UpdateTransferStatus(message.StringMessage);
+            SendResult(true);
+        }
+
+        private void SendUserList()
+        {
+            var users = _dbController.GetUsersList();
+            foreach (var file in users)
+            {
+                _sslChannel.SendMessage(new Message(Commands.GetUserList, file));
             }
             //Сообщение ERROR отправляется как флаг окончания списка
             _sslChannel.SendMessage(new Message(Commands.Error, String.Empty));
@@ -525,6 +670,38 @@ namespace ExplorerServer.Core
                 Directory.CreateDirectory("PublicKeys");
             }
             return "PublicKeys\\" + _userId + ".pbKey";
+        }
+
+        private static string GenerateNewFileKey(int length)
+        {
+            Random rnd = new Random();
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < length; i++)
+            {
+                sb.Append(rnd.Next(32, 1000));
+            }
+            return sb.ToString();
+        }
+
+        private static string ByteToStringConverter(byte[] bytes)
+        {
+            StringBuilder str = new StringBuilder();
+            foreach (var bt in bytes)
+            {
+                str.Append((char)((char)bt + 1));
+            }
+            return str.ToString();
+        }
+
+        private static byte[] StringToByteConverter(string source)
+        {
+            var res = new byte[source.Length];
+            for (int i = 0; i < source.Length; i++)
+            {
+                res[i] = (byte)source[i];
+                res[i] -= 1;
+            }
+            return res;
         }
 
         #endregion#

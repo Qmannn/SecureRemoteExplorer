@@ -63,7 +63,7 @@ namespace ExplorerServer.Core.Cryptography
                 while (fs.Position != fs.Length)
                 {
                     var bytes = new byte[fs.Length - fs.Position < 1024 ? fs.Length - fs.Position : 1024];
-                    fs.Read(bytes, 0, bytes.Length);
+                    var byteCount = fs.Read(bytes, 0, bytes.Length);
                     if (fs.Position == fs.Length)
                     {
                         var subBytes = new byte[(8 - bytes.Length % 8) + 8];
@@ -71,7 +71,7 @@ namespace ExplorerServer.Core.Cryptography
                         bytes = bytes.Concat(subBytes).ToArray();
                     }
                     bytes = _gost.Encode(bytes, keyBytes);
-                    fs.Position = 0;
+                    fs.Position -= byteCount;
                     fs.Write(bytes, 0, bytes.Length);
                 }
             }
@@ -79,6 +79,7 @@ namespace ExplorerServer.Core.Cryptography
 
         public void DecrypFile(string file, string key)
         {
+            Key = key;
             using (var fs = new FileStream(file, FileMode.Open))
             {
                 while (fs.Position != fs.Length)
@@ -93,8 +94,12 @@ namespace ExplorerServer.Core.Cryptography
                         var lastBytes = new byte[bytes.Length - subBytesCount];
                         Array.Copy(bytes, lastBytes, bytes.Length - subBytesCount);
                         bytes = lastBytes;
+                        fs.Position -= bytesCount;
+                        fs.SetLength(fs.Position + bytes.Length);
+                        fs.Write(bytes, 0, bytes.Length);
+                        break;
                     }
-                    fs.Position -= bytes.Length;
+                    fs.Position -= bytesCount;
                     fs.Write(bytes, 0, bytes.Length);
                 }
             }
@@ -128,7 +133,7 @@ namespace ExplorerServer.Core.Cryptography
             {
                 return null;
             }
-            RSAParameters rsaParameters;
+            RsaParametersSerializable rsaParameters;
             Key = fileKey;
             BinaryFormatter formatter = new BinaryFormatter();
             try
@@ -136,24 +141,24 @@ namespace ExplorerServer.Core.Cryptography
                 DecrypFile(rsaPrivateParamsFilePath, fileKey);
                 using (FileStream fs = new FileStream(rsaPrivateParamsFilePath, FileMode.Open))
                 {
-                    rsaParameters = (RSAParameters) formatter.Deserialize(fs);
+                    rsaParameters = (RsaParametersSerializable) formatter.Deserialize(fs);
                 }
                 EncryptFile(rsaPrivateParamsFilePath, fileKey);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }
-            return RsaCypher.RsaDecrypt(encryptData, rsaParameters, false);
+            return RsaCypher.RsaDecrypt(encryptData, rsaParameters.RsaParameters, false);
         }
 
         public void CreateAndSaveRsaParameters(string rsaPublicParamsFilePath, string rsaPrivateParamsFilePath, string privateFileKey)
         {
-            RSAParameters privateParameters;
+            RsaParametersSerializable privateParameters;
             RSAParameters publicParameters;
             using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
             {
-                privateParameters = rsa.ExportParameters(true);
+                privateParameters = new RsaParametersSerializable(rsa.ExportParameters(true));
                 publicParameters = rsa.ExportParameters(false);
             }
             var formatter = new BinaryFormatter();

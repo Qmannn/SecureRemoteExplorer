@@ -59,7 +59,7 @@ namespace ExplorerClient.Gui.View
         }
 
         #endregion
-        
+
 
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {

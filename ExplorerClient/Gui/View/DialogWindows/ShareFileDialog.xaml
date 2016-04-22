@@ -1,0 +1,78 @@
+﻿<Window x:Class="ExplorerClient.Gui.View.DialogWindows.FileShareDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Name="UserWindow"
+        Title="Отправка файла"
+        Width="372.794"
+        Height="341.813"
+        Loaded="UserWindow_Loaded"
+        mc:Ignorable="d" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="14*" />
+            <RowDefinition Height="71*" />
+            <RowDefinition Height="97*" />
+            <RowDefinition Height="21*" />
+        </Grid.RowDefinitions>
+        <Label x:Name="label"
+               Width="345"
+               Height="27"
+               Margin="10,0,0,0"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Content="Выберте одного или нескольких пользователей" />
+        <ListView x:Name="LvUsers"
+                  Grid.Row="1"
+                  Margin="0,1,0,0">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="{Binding ElementName=LvUsers,
+                                                    Path=Width}"
+                                    DisplayMemberBinding="{Binding Path=Name}"
+                                    Header="Имя пользователя" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Label x:Name="Lb1"
+               Grid.Row="2"
+               Width="345"
+               Height="26"
+               Margin="10,1,0,0"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Content="Введите комментарий к файлу" />
+        <TextBox x:Name="TbComment"
+                 Grid.Row="2"
+                 Width="{Binding ElementName=LvUsers,
+                                 Path=Width}"
+                 Height="52"
+                 Margin="0,27,0,0"
+                 VerticalAlignment="Top"
+                 TextWrapping="Wrap" />
+        <Label x:Name="Lv2"
+               Grid.Row="2"
+               Width="123"
+               Height="26"
+               Margin="10,84,0,0"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Content="Введите ключ файла"
+               RenderTransformOrigin="0.421,-0.154" />
+        <PasswordBox x:Name="PbKey"
+                     Grid.Row="2"
+                     Width="{Binding ElementName=LvUsers,
+                                     Path=Width}"
+                     Height="23"
+                     Margin="0,110,0,0"
+                     VerticalAlignment="Top" />
+        <Button Name="BtnSend"
+                Grid.Row="3"
+                Margin="0,1,0,4"
+                Background="White"
+                Click="BtnSend_Click"
+                Content="Отправить"
+                FontSize="15" />
+    </Grid>
+</Window>

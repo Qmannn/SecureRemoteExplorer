@@ -11,7 +11,7 @@
         MinWidth="620"
         MinHeight="300"
         Loaded="Window_Loaded"
-        mc:Ignorable="d">
+        mc:Ignorable="d" WindowStartupLocation="CenterScreen">
     <Grid>
         <TabControl x:Name="TabExplorer">
             <TabItem Width="200" Header="Общие файлы">
@@ -20,32 +20,24 @@
                         <RowDefinition Height="40" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
-                        <Button Name="BtnSaveToPrivate"
+                    <Grid Name="CommonBtnGrid" Grid.Row="0">
+                        <Button Name="BtnDownloadCommon"
                                 Width="50"
-                                Margin="175,2,0,0"
-                                HorizontalAlignment="Left"
-                                Background="White"
-                                BorderBrush="White"
-                                Click="BtnSaveToPrivate_Click"
-                                ToolTip="Сохранить себе">
-                            <Image Source="../image/save.PNG" />
-                        </Button>
-                        <Button Width="50"
                                 Margin="10,2,0,0"
                                 HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
+                                Click="BtnDownloadCommon_Click"
                                 ToolTip="Скачать">
                             <Image Source="../image/download.PNG" />
                         </Button>
-                        <Button Name="BtnDelete"
+                        <Button Name="BtnDeleteCommon"
                                 Width="50"
                                 Margin="65,2,0,0"
                                 HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
-                                Click="BtnDelete_Click"
+                                Click="BtnDeleteCommon_Click"
                                 ToolTip="Удалить">
                             <Image Source="../image/delete.png" />
                         </Button>
@@ -55,6 +47,7 @@
                                 HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
+                                Click="BtnUpload_Click"
                                 ToolTip="Загрузить новый файл">
                             <Image Source="../image/upload.PNG" />
                         </Button>
@@ -70,7 +63,7 @@
                         </Button>
                     </Grid>
                     <Grid Grid.Row="1">
-                        <ListView x:Name="LwCommonFiles">
+                        <ListView x:Name="LvCommonFiles">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn Width="150"
@@ -94,7 +87,7 @@
                         <RowDefinition Height="40" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
+                    <Grid Name="PrivateBtnGrid" Grid.Row="0">
                         <Border BorderBrush="Black">
                             <Grid>
                                 <Button Name="BtnDownloadPrivate"
@@ -103,6 +96,7 @@
                                         HorizontalAlignment="Left"
                                         Background="White"
                                         BorderBrush="White"
+                                        Click="BtnDownloadPrivate_Click"
                                         ToolTip="Скачать">
                                     <Image Source="../image/download.PNG" />
                                 </Button>
@@ -112,6 +106,7 @@
                                         HorizontalAlignment="Left"
                                         Background="White"
                                         BorderBrush="White"
+                                        Click="BtnDeletePrivate_Click"
                                         ToolTip="Удалить">
                                     <Image Source="../image/delete.png" />
                                 </Button>
@@ -121,6 +116,7 @@
                                         HorizontalAlignment="Left"
                                         Background="White"
                                         BorderBrush="White"
+                                        Click="BtnUploadPrivate_Click"
                                         ToolTip="Загрузить новый файл">
                                     <Image Source="../image/upload.PNG" />
                                 </Button>
@@ -130,7 +126,7 @@
                                         HorizontalAlignment="Left"
                                         Background="White"
                                         BorderBrush="White"
-                                        ToolTip="Проверить целостность">
+                                        ToolTip="Проверить целостность" Click="BtnCheckFile_Click">
                                     <Image Source="../image/hash.PNG" />
                                 </Button>
                                 <Button Name="BtnChKey"
@@ -139,23 +135,27 @@
                                         HorizontalAlignment="Left"
                                         Background="White"
                                         BorderBrush="White"
+                                        Click="BtnChKey_Click"
                                         ToolTip="Сменить ключ шифрования">
                                     <Image Source="../image/key.PNG" />
                                 </Button>
-                                <Button Name="BtnRecalc"
+                                <Button Name="BtnShare"
                                         Width="60"
                                         Margin="220,2,0,0"
                                         HorizontalAlignment="Left"
                                         Background="White"
                                         BorderBrush="White"
+                                        Click="BtnShare_Click"
                                         ToolTip="Передать файл">
                                     <Image Source="../image/send.PNG" />
                                 </Button>
-                                <Button Width="60"
+                                <Button Name="BtnRecalcHash"
+                                        Width="60"
                                         Margin="330,2,0,0"
                                         HorizontalAlignment="Left"
                                         Background="White"
                                         BorderBrush="White"
+                                        Click="BtnRecalc_Click"
                                         ToolTip="Пересчитать хэш">
                                     <Image Source="../image/recalcHash.PNG" />
                                 </Button>
@@ -173,7 +173,9 @@
                         </Border>
                     </Grid>
                     <Grid Grid.Row="1">
-                        <ListView x:Name="LvPrivateFiles" BorderBrush="Black">
+                        <ListView x:Name="LvPrivateFiles"
+                                  BorderBrush="Black"
+                                  ToolTip="Личные файлы">
                             <ListView.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="Копировать" />
@@ -213,19 +215,23 @@
                         <RowDefinition Height="40" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
+                    <Grid Name="NewFilesBtnGrid" Grid.Row="0">
                         <Button Name="BtnReciveFile"
+                                Width="50"
                                 Margin="0,2,0,0"
+                                HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
-                                ToolTip="Принять файл" HorizontalAlignment="Left" Width="50">
+                                ToolTip="Принять файл" Click="BtnReciveFile_Click">
                             <Image Source="../image/save.PNG" />
                         </Button>
                         <Button Name="BtnDeleteNewFile"
+                                Width="50"
                                 Margin="55,2,0,0"
+                                HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
-                                ToolTip="Удалить файл не принимая" HorizontalAlignment="Left" Width="50">
+                                ToolTip="Удалить файл не принимая" Click="BtnDeleteNewFile_Click">
                             <Image Source="../image/delete.png" />
                         </Button>
                         <Button Name="BtnUpdateNewFiles"
@@ -234,11 +240,12 @@
                                 HorizontalAlignment="Right"
                                 Background="White"
                                 BorderBrush="White"
-                                ToolTip="Обновить список" Click="BtnUpdateNewFiles_Click">
+                                Click="BtnUpdateNewFiles_Click"
+                                ToolTip="Обновить список">
                             <Image Source="../image/update.png" />
                         </Button>
                     </Grid>
-                    <ListView Grid.Row="1" Name="LvNewFiles">
+                    <ListView Name="LvNewFiles" Grid.Row="1">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Width="100"
@@ -266,14 +273,15 @@
                         <RowDefinition Height="40" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
+                    <Grid Name="ReportsBtnGrid" Grid.Row="0">
                         <Button Name="BtnUpdateReports"
                                 Width="50"
                                 Margin="0,2,0,0"
                                 HorizontalAlignment="Right"
                                 Background="White"
                                 BorderBrush="White"
-                                ToolTip="Обновить список" Click="BtnUpdateReports_Click">
+                                Click="BtnUpdateReports_Click"
+                                ToolTip="Обновить список">
                             <Image Source="../image/update.png" />
                         </Button>
                     </Grid>
@@ -301,5 +309,17 @@
                 </Grid>
             </TabItem>
         </TabControl>
+        <Grid Name="WaitGrid"
+              Margin="100"
+              Background="Azure"
+              Visibility="Hidden">
+            <Border BorderBrush="Black" BorderThickness="2" />
+            <TextBlock HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Background="Azure"
+                       FontSize="20">
+                Операция выполняется
+            </TextBlock>
+        </Grid>
     </Grid>
 </Window>

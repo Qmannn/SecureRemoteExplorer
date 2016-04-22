@@ -773,9 +773,9 @@ namespace ExplorerServer.Core.DataBase
                     if (dbReader.HasRows)
                     {
                         dbReader.Read();
-                        var path = dbReader.GetValue(0).ToString();
+                        var id = dbReader.GetValue(0).ToString();
                         dbReader.Close();
-                        return path;
+                        return id;
                     }
                     dbReader.Close();
                 }
@@ -862,6 +862,126 @@ namespace ExplorerServer.Core.DataBase
             }
             return result;
         }
+
+        public void ShareFile(string filePath, string fileName, string toUserId, string encryptedKey, string comment)
+        {
+            lock (_dbConnection)
+            {
+                var query =
+                    "INSERT INTO file_transfer (from_user_id, to_user_id, file_path, secret_key, send_time, file_name, comment)" +
+                    " VALUES (@fromId, @toId, @path, @key, @time, @name, @comment)";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@name", NpgsqlDbType.Text).Value = fileName;
+                command.Parameters.Add("@path", NpgsqlDbType.Text).Value = filePath;
+                command.Parameters.Add("@time", NpgsqlDbType.Text).Value = DateTime.Now;
+                command.Parameters.Add("@fromId", NpgsqlDbType.Uuid).Value = _userId;
+                command.Parameters.Add("@toId", NpgsqlDbType.Uuid).Value = toUserId;
+                command.Parameters.Add("@key", NpgsqlDbType.Text).Value = encryptedKey;
+                command.Parameters.Add("@comment", NpgsqlDbType.Text).Value = comment;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Не удалось отправить файл. user_id = " + _userId);
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Вернет параметры переданного файла
+        /// 1) путь до файла
+        /// 2) имя файла
+        /// 3) зашифрованный ключ для файла
+        /// </summary>
+        /// <param name="transferId"></param>
+        /// <returns></returns>
+        public string[] GetTransferParams(string transferId)
+        {
+            string[] transferParams = new string[3];
+            lock (_dbConnection)
+            {
+                var command =
+                    "SELECT file_path, file_name, secret_key FROM file_transfer  WHERE transfer_id = @transferId";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@transferId", NpgsqlDbType.Uuid).Value = transferId;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                    var dbReader = npgCommand.ExecuteReader();
+                    if (dbReader.HasRows)
+                    {
+                        dbReader.Read();
+                        transferParams[0] = dbReader.GetValue(0).ToString();
+                        transferParams[1] = dbReader.GetValue(1).ToString();
+                        transferParams[2] = dbReader.GetValue(2).ToString();
+                        dbReader.Close();
+                        return transferParams;
+                    }
+                    dbReader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        public void UpdateTransferStatus(string transferId)
+        {
+            lock (_dbConnection)
+            {
+                var query =
+                    "UPDATE file_transfer SET recived = 'true' WHERE transfer_id = @transferId";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@transferId", NpgsqlDbType.Uuid).Value = transferId;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+            }   
+        }
+
+        public List<string> GetUsersList()
+        {
+            var result = new List<string>();
+            lock (_dbConnection)
+            {
+                var query =
+                    "SELECT name, user_id " +
+                    "FROM users ";/* +
+                    "WHERE user_id != @userId";*/
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                //command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
+                try
+                {
+                    var reader = command.ExecuteReader();
+                    while (reader.HasRows)
+                    {
+                        reader.Read();
+                        string file = "";
+                        file += reader.GetValue(0) + "$";
+                        file += reader.GetValue(1).ToString();
+                        result.Add(file);
+                    }
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return result;
+                }
+            }
+            return result;
+        } 
 
         #endregion
     }
