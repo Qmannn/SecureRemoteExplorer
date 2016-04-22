@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using ExplorerClient.Core;
+using ExplorerClient.Core.Objects;
 
 namespace ExplorerClient.Gui.View.DialogWindows
 {

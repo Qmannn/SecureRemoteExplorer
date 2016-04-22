@@ -49,7 +49,7 @@ namespace ExplorerServer.Core.DataBase
             string result = String.Empty;
             lock (_dbConnection)
             {
-                var query = "SELECT count(file_id) FROM files WHERE user_id = @userId";
+                var query = "SELECT count(file_id) FROM private_files WHERE user_id = @userId";
                 NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
                 command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
                 try
@@ -76,7 +76,7 @@ namespace ExplorerServer.Core.DataBase
             string result = String.Empty;
             lock (_dbConnection)
             {
-                var query = "SELECT count(file_id) FROM files WHERE user_id = @userId AND is_controled = true";
+                var query = "SELECT count(file_id) FROM private_files WHERE user_id = @userId AND is_controled = true";
                 var command = new NpgsqlCommand(query, _dbConnection);
                 command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
                 try

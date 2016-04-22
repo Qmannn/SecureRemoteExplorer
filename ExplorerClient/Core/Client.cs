@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using ExplorerClient.Core.Network;
+using ExplorerClient.Core.Objects;
 
 namespace ExplorerClient.Core
 {
@@ -808,6 +809,13 @@ namespace ExplorerClient.Core
                     return new List<User>();
                 }
             });
+        }
+
+        public static void Logout()
+        {
+            _sslChannel.SendMessage(new Message(Commands.Logout, String.Empty));
+            IsAuthorized = false;
+            OnDisconnected?.Invoke();
         }
 
         #region Events

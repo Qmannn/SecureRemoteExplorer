@@ -1,4 +1,4 @@
-﻿namespace ExplorerClient.Core
+﻿namespace ExplorerClient.Core.Objects
 {
     public class User
     {

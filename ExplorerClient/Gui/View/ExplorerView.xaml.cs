@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using ExplorerClient.Core;
+using ExplorerClient.Core.Objects;
 using ExplorerClient.Gui.View.DialogWindows;
 using Microsoft.Win32;
 
@@ -177,9 +178,14 @@ namespace ExplorerClient.Gui.View
             _saveFileDialog.FileName = ((RemoteFile)LvPrivateFiles.SelectedItems[0]).Name;
             _saveFileDialog.ShowDialog();
             fileName = _saveFileDialog.FileName;
-            if (!await Client.GetPrivateFileAsync(((RemoteFile)LvPrivateFiles.SelectedItems[0]).Uuid, ((RemoteFile)LvPrivateFiles.SelectedItems[0]).Name, StaticValueBox.Key))
+            if (!await Client.GetPrivateFileAsync(((RemoteFile)LvPrivateFiles.SelectedItems[0]).Uuid, fileName ?? ((RemoteFile)LvPrivateFiles.SelectedItems[0]).Name, StaticValueBox.Key))
             {
                 MessageBox.Show("Не удалось скачать файл. Имя: " + fileName + "\nОшибка: " + Client.LastError);
+            }
+            else
+            {
+                MessageBox.Show("Готово.", "Результат загрузки файла",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
             }
             SetWaitScreen(false);
         }
@@ -272,6 +278,7 @@ namespace ExplorerClient.Gui.View
                 return;
             }
             SetWaitScreen(true);
+            bool success = true;
             foreach (RemoteFile file in LvPrivateFiles.SelectedItems)
             {
                 if (!await Client.RecalcHashAsync(file.Uuid))
@@ -279,10 +286,11 @@ namespace ExplorerClient.Gui.View
                     MessageBox.Show("Не удалось пересчитать контрольную сумму!", "Результат пересчета контрольной суммы",
                         MessageBoxButton.OK, MessageBoxImage.Error);
                     file.IsDamaged = true;
+                    success = false;
                 }
             }
             SetWaitScreen(false);
-            if (LvPrivateFiles.SelectedItems.Count == 1)
+            if (success)
             {
                 MessageBox.Show("Готово.", "Результат пересчета контрольной суммы",
                         MessageBoxButton.OK, MessageBoxImage.Information);

@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\ServerData.cs" />
     <Compile Include="Core\Client.cs" />
     <Compile Include="Core\Cryptography\CryptoController.cs" />
     <Compile Include="Core\Cryptography\GostCipher.cs" />

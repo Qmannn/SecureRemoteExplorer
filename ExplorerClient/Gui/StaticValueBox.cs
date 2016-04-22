@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ExplorerClient.Core;
+using ExplorerClient.Core.Objects;
 
 namespace ExplorerClient.Gui
 {

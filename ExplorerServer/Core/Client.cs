@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -17,7 +16,6 @@ namespace ExplorerServer.Core
     public class Client
     {
         private readonly TcpClient _client;
-        private readonly X509Certificate _certificate;
         private readonly SslChannel _sslChannel;
         private Thread _clientThread;
         private readonly DbController _dbController;
@@ -31,8 +29,7 @@ namespace ExplorerServer.Core
         public Client(TcpClient client, X509Certificate certificate, NpgsqlConnection dbConnection)
         {
             _client = client;
-            _certificate = certificate;
-            _sslChannel = new SslChannel(_client, _certificate);
+            _sslChannel = new SslChannel(_client, certificate);
             _dbController = new DbController(dbConnection);
         }
 
@@ -150,6 +147,10 @@ namespace ExplorerServer.Core
                 case Commands.GetUserList:
                     SendUserList();
                     break;
+                case Commands.Logout:
+                    Stop();
+                    Console.WriteLine("Клиент отключен. Логин: " + _login);
+                    return false;
                 default:
                     Console.WriteLine("Получена неизвестная команда");
                     return false;
@@ -181,10 +182,7 @@ namespace ExplorerServer.Core
         {
             string result = String.Empty;
             result += _dbController.GetCountUserFiles() + "$";
-            result += _dbController.GetCountControlFiles() + "$";
-            result += _dbController.GetCountEncryptedFiles() + "$";
-            result += _dbController.GetCountNewFiles() + "$";
-            result += _dbController.GetFreeMemCount();
+            result += _dbController.GetCountNewFiles();
             return result;
         }
 
@@ -215,19 +213,15 @@ namespace ExplorerServer.Core
             return _dbController.SetShareStatus(newStatus);
         }
 
-        private bool ReciveCommonFile(Message message)
+        private void ReciveCommonFile(Message message)
         {
             string fileName = CreateCommonFileName(message.StringMessage);
             SendResult(true);
             if (_sslChannel.ReciveFile(fileName))
             {
                 var fileSize = new FileInfo(fileName).Length.ToString();
-                if (!_dbController.SaveNewCommonFile(message.StringMessage, fileName, fileSize))
-                {
-                    return true;
-                }
+                _dbController.SaveNewCommonFile(message.StringMessage, fileName, fileSize);
             }
-            return false;
         }
 
         private void SendCommonFile(Message message)
@@ -242,7 +236,6 @@ namespace ExplorerServer.Core
             }
             SendResult(true);
             _sslChannel.SendFile(filePath);
-            return;
         }
 
         private void SendResult(bool result, string message = null)
@@ -388,6 +381,11 @@ namespace ExplorerServer.Core
             }
             SHA1 hash = SHA1.Create();
             string fileHash;
+            if (!File.Exists(filePath))
+            {
+                SendResult(false, "Файл не найден на сервере. Обратитесь к администратору");
+                return;
+            }
             using (FileStream fs = new FileStream(filePath, FileMode.Open))
             {
                 fileHash = ByteToStringConverter(hash.ComputeHash(fs));
@@ -407,6 +405,11 @@ namespace ExplorerServer.Core
             }
             SHA1 hash = SHA1.Create();
             string fileHash;
+            if (!File.Exists(filePath))
+            {
+                SendResult(false, "Файл не найден на сервере. Обратитесь к администратору");
+                return;
+            }
             using (FileStream fs = new FileStream(filePath, FileMode.Open))
             {
                 fileHash = ByteToStringConverter(hash.ComputeHash(fs));

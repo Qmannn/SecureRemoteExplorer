@@ -3,8 +3,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Navigation;
+using System.Drawing;
+using System.Windows.Documents;
+using System.Windows.Media;
 using ExplorerClient.Core;
+using ExplorerClient.Gui.View.DialogWindows;
 
 namespace ExplorerClient.Gui.View
 {
@@ -29,7 +32,7 @@ namespace ExplorerClient.Gui.View
 
         void Login()
         {
-            new LoginView().ShowDialog();
+            new DialogWindows.LoginView().ShowDialog();
             WorkGrid.Visibility = GetVisibility(Client.IsAuthorized);
             LoginErrorGrid.Visibility = GetVisibility(!Client.IsAuthorized);
             Client.OnDisconnected += ClientOnOnDisconnected;
@@ -45,17 +48,25 @@ namespace ExplorerClient.Gui.View
         private async void SetUserState()
         {
             var state = await Client.GetUserStateAsync();
-            if (state.Length < 5)
+            if (state?.Length < 2)
             {
                 MessageBox.Show("Ошибка получения статистики хранилища", "Ошибка", MessageBoxButton.OK,
                     MessageBoxImage.Error);
                 return;
             }
-            LbUserFileCount.Content += state[0];
-            LbControlFileCount.Content += state[1];
-            LbSecureFileCount.Content += state[2];
-            LbNewFileCount.Content += state[3];
-            LbFreeSpace.Content += state[4] + " Мб.";
+            if (state != null)
+            {
+                LbUserFileCount.Content = state[0];
+                LbNewFileCountN.Content = state[1];
+                if (state[1] != "0")
+                {
+                    LbNewFileCountN.Foreground = Brushes.Red;
+                }
+                else
+                {
+                    LbNewFileCountN.Foreground = Brushes.Black;
+                }
+            }
         }
 
         #endregion
@@ -105,6 +116,47 @@ namespace ExplorerClient.Gui.View
             Visibility = Visibility.Hidden;
             new ExplorerView().ShowDialog();
             Visibility = Visibility.Visible;
+        }
+
+        private async void BtnCreateKeys_Click(object sender, RoutedEventArgs e)
+        {
+            StaticValueBox.Key = null;
+            new GetKeyDialog("Новый ключ для обмена файлами").ShowDialog();
+            if (StaticValueBox.Key == null)
+            {
+                MessageBox.Show("Создание ключа отменено");
+                return;
+            }
+            var newShareKey = StaticValueBox.Key;
+            StaticValueBox.Key = null;
+            new GetKeyDialog("Повторите новый ключ для обмена файлами").ShowDialog();
+            if (StaticValueBox.Key == null)
+            {
+                MessageBox.Show("Создание ключа отменено");
+                return;
+            }
+            if (newShareKey != StaticValueBox.Key)
+            {
+                MessageBox.Show("Ключи не совпадают");
+                return;
+            }
+            if (!await Client.CreateShareKeyAsync(newShareKey))
+            {
+                MessageBox.Show("Не удалось создать ключ.\nОшибка: " + Client.LastError,
+                        "Результат создания ключа обмена файлами",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+
+            }
+            else
+            {
+                MessageBox.Show("Готово.", "Результат создания ключа обмена файлами",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void BtnLogout_Click(object sender, RoutedEventArgs e)
+        {
+            Client.Logout();
         }
     }
 }

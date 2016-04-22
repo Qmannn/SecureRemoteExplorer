@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace ExplorerClient.Core
+namespace ExplorerClient.Core.Objects
 {
     public class RemoteFile 
     {

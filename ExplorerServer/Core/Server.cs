@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using ExplorerServer.Config;
 using Npgsql;
 
 namespace ExplorerServer.Core
@@ -10,21 +13,21 @@ namespace ExplorerServer.Core
     public class Server
     {
         #region members#
-
-        private readonly int _port;
-        private string _certificatePath;
+        
         private X509Certificate _certificate;
         private TcpListener _listener;
-        private List<Client> _clients = new List<Client>();
+        private readonly List<Client> _clients = new List<Client>();
         private NpgsqlConnection _dbConnection = null;
-
+        private bool _working = true;
+        private Thread _listenThread;
+        private ServerData _config;
         #endregion members#
 
         #region PublicMethod#
-        public Server(int port, string certificatePath)
+
+        public Server(ServerData data)
         {
-            _port = port;
-            _certificatePath = certificatePath;
+            _config = data;
         }
 
         /// <summary>
@@ -32,16 +35,18 @@ namespace ExplorerServer.Core
         /// </summary>
         public void Start()
         {
+            _working = true;
+            //Подключение к базе данных
             _dbConnection = new NpgsqlConnection("Server="
-                + "localhost" +
+                + _config.DataBaseServer +
                 ";Port="
-                + "5432" +
+                + _config.DataBasePort +
                 ";User="
-                + "postgres" +
+                + _config.DataBaseLogin +
                 ";Password="
-                + "1111" +
+                + _config.DataBasePass +
                 ";Database="
-                + "ExplorerDataBase" +
+                + _config.DataBaseName +
                 ";");
             try
             {
@@ -55,18 +60,32 @@ namespace ExplorerServer.Core
             }
             try
             {
-                _certificate = new X509Certificate2(_certificatePath, "1111");
-                _listener = new TcpListener(IPAddress.Any, _port);
+                //Открытие файла сертификата
+                _certificate = new X509Certificate2(_config.CertificateName, _config.CertificatePass);
+                _listener = new TcpListener(IPAddress.Any, _config.Port);
             }
             catch (Exception ex)
             {
-
                 Console.WriteLine("Ошибка запуска сервера: " + ex.Message);
+                return;
             }
-            //TODO Асинхронный метод AcceptClients
-            
-            Console.WriteLine("Server was started");
-            AcceptClients();
+            Console.WriteLine("Сервер запущен.");
+            _listenThread = new Thread(AcceptClients);
+            _listenThread.Start();
+        }
+
+        /// <summary>
+        /// Остановка сервера
+        /// </summary>
+        public void Stop()
+        {
+            _listener.Stop();
+            _listenThread.Abort();
+            foreach (var client in _clients)
+            {
+                client.Stop();
+            }
+            Console.WriteLine("Сервер останвлен");
         }
 
         #endregion PublicMethods
@@ -76,11 +95,19 @@ namespace ExplorerServer.Core
         private void AcceptClients()
         {
             _listener.Start();
-            while (true)
+            while (_working)
             {
-                Client client = new Client(_listener.AcceptTcpClient(), _certificate, _dbConnection);
-                _clients.Add(client);
-                client.Start();
+                try
+                {
+                    Client client = new Client(_listener.AcceptTcpClient(), _certificate, _dbConnection);
+                    _clients.Add(client);
+                    client.Start();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Сервер был принудительно остановлен.");
+                    _working = false;
+                }
             }
         }
 

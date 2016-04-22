@@ -26,6 +26,7 @@
         ReciveNewFile,
         ShareFile,
         DeleteNewFile,
-        GetUserList
+        GetUserList,
+        Logout
     }
 }
