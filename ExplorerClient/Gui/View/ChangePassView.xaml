@@ -31,6 +31,7 @@
                 Height="25"
                 Margin="10,200,10,0"
                 VerticalAlignment="Top"
+                Background="White"
                 Click="BtnOk_Click"
                 Content="Сохранить" />
 

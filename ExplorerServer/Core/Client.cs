@@ -151,6 +151,12 @@ namespace ExplorerServer.Core
                     Stop();
                     Console.WriteLine("Клиент отключен. Логин: " + _login);
                     return false;
+                case Commands.CreateUser:
+                    CreateUser(message);
+                    break;
+                case Commands.MustChangeAllPass:
+                    MustChangeAllPass();
+                    break;
                 default:
                     Console.WriteLine("Получена неизвестная команда");
                     return false;
@@ -182,7 +188,11 @@ namespace ExplorerServer.Core
         {
             string result = String.Empty;
             result += _dbController.GetCountUserFiles() + "$";
-            result += _dbController.GetCountNewFiles();
+            result += _dbController.GetCountNewFiles() + "$";
+            result += _dbController.GetUserShareState(_userId) + "$";
+            result += _dbController.MustChangePass(_userId) + "$";
+            result += _dbController.UserIsAdmin(_userId);
+
             return result;
         }
 
@@ -505,9 +515,9 @@ namespace ExplorerServer.Core
                 return;
             }
             var rsaPublicFile = _dbController.GetPublicKeyPath(userIdTo);
-            if (String.IsNullOrEmpty(rsaPublicFile))
+            if (String.IsNullOrEmpty(rsaPublicFile) || !_dbController.GetUserShareState(userIdTo))
             {
-                SendResult(false, "Пользователь не имеет открытого ключа");
+                SendResult(false, "Пользователь не имеет открытого ключа или запретил получение файлов");
                 try
                 {
                     File.Delete(sendFilePath);
@@ -604,6 +614,40 @@ namespace ExplorerServer.Core
             }
             //Сообщение ERROR отправляется как флаг окончания списка
             _sslChannel.SendMessage(new Message(Commands.Error, String.Empty));
+        }
+
+        private void CreateUser(Message message)
+        {
+            var fields = message.StringMessage.Split('$');
+            if (!_dbController.UserIsAdmin(_userId))
+            {
+                SendResult(false, "Недостаточно прав!");
+                return;
+            }
+            if (fields.Length < 4)
+            {
+                SendResult(false, "Неверные параметры");
+                return;
+            }
+            if (_dbController.GetUserId(fields[1]) != null)
+            {
+                SendResult(false, "Логин существует");
+                return;
+            }
+            SHA1 hash = SHA1.Create();
+            var passHash = ByteToStringConverter(hash.ComputeHash(StringToByteConverter(fields[2])));
+            _dbController.AddNewUser(fields[1], passHash, fields[0], fields[3] == true.ToString());
+            SendResult(true);
+        }
+
+        private void MustChangeAllPass()
+        {
+            if (!_dbController.UserIsAdmin(_userId))
+            {
+                SendResult(false, "Недостаточно прав!");
+            }
+            _dbController.SetMastChangePassAllUsers();
+            SendResult(true);
         }
 
         #endregion#

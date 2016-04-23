@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Controls;
 using ExplorerClient.Core;
 using ExplorerClient.Core.Objects;
 using ExplorerClient.Gui.View.DialogWindows;
@@ -13,13 +11,13 @@ namespace ExplorerClient.Gui.View
     /// <summary>
     /// Логика взаимодействия для ExplorerView.xaml
     /// </summary>
-    public partial class ExplorerView : Window
+    public partial class ExplorerView
     {
         readonly List<RemoteFile> _privateFiles = new List<RemoteFile>();
         readonly List<RemoteFile> _commonFiles= new List<RemoteFile>();
 
-        OpenFileDialog _fileDialog = new OpenFileDialog();
-        SaveFileDialog _saveFileDialog = new SaveFileDialog();
+        readonly OpenFileDialog _fileDialog = new OpenFileDialog();
+        readonly SaveFileDialog _saveFileDialog = new SaveFileDialog();
 
         public ExplorerView()
         {
@@ -30,8 +28,11 @@ namespace ExplorerClient.Gui.View
         
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+
             UpdateCommonFiles();
             UpdatePrivateFiles();
+            UpdateNewFiles();
+            UpdateReports();
         }
 
         private async void UpdateCommonFiles()
@@ -113,7 +114,7 @@ namespace ExplorerClient.Gui.View
             }
             foreach (RemoteFile file in LvCommonFiles.SelectedItems)
             {
-                if (!await Client.GetCommonFileAsync(file.Uuid, file.Name))
+                if (!await Client.GetCommonFileAsync(file.Uuid, fileName ?? file.Name))
                 {
                     MessageBox.Show("Не удалось скачать файл. Имя: " + (fileName ?? file.Name));
                 }

@@ -76,6 +76,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Core\Network\DeserializationBinder.cs" />
+    <Page Include="Gui\View\AdminPanelView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Gui\View\ChangePassView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -112,6 +116,9 @@
     <Compile Include="Core\Objects\SentFile.cs" />
     <Compile Include="Core\Objects\User.cs" />
     <Compile Include="Gui\StaticValueBox.cs" />
+    <Compile Include="Gui\View\AdminPanelView.xaml.cs">
+      <DependentUpon>AdminPanelView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Gui\View\ChangePassView.xaml.cs">
       <DependentUpon>ChangePassView.xaml</DependentUpon>
     </Compile>

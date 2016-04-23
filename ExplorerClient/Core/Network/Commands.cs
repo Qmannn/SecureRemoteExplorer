@@ -27,6 +27,8 @@
         ShareFile,
         DeleteNewFile,
         GetUserList,
-        Logout
+        Logout,
+        CreateUser,
+        MustChangeAllPass
     }
 }

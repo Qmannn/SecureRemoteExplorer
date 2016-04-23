@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using ExplorerServer.Config;
 using ExplorerServer.Core;
-using ExplorerServer.Core.Cryptography;
+using Mono.Math;
+using Npgsql;
 
 namespace ExplorerServer
 {
     class Program
     {
+        
+
         static void Main(string[] args)
         {
+            if (args == null) throw new ArgumentNullException(nameof(args));
             ServerData config = new ServerData();
             if (!config.ReadCongigFile())
             {
@@ -58,7 +57,5 @@ namespace ExplorerServer
                 }
             } while (!exit);
         }
-
-        
     }
 }

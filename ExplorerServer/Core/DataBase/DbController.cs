@@ -211,7 +211,7 @@ namespace ExplorerServer.Core.DataBase
         {
             lock (_dbConnection)
             {
-                var query = "UPDATE users SET pass_hash = @passHash WHERE user_id = @userId";
+                var query = "UPDATE users SET pass_hash = @passHash, mast_change_pass = 'false' WHERE user_id = @userId";
                 NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
                 command.Parameters.Add("@passHash", NpgsqlDbType.Text).Value = passHash;
                 command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
@@ -332,7 +332,7 @@ namespace ExplorerServer.Core.DataBase
             lock (_dbConnection)
             {
                 var query =
-                    "SELECT file_id, file_name, size, load_time, login FROM common_files LEFT JOIN users ON users.user_id = common_files.user_id";
+                    "SELECT file_id, file_name, size, load_time, name FROM common_files LEFT JOIN users ON users.user_id = common_files.user_id";
                 NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
                 try
                 {
@@ -947,7 +947,7 @@ namespace ExplorerServer.Core.DataBase
                 {
                     Console.WriteLine("DB error: " + ex.Message);
                 }
-            }   
+            }
         }
 
         public List<string> GetUsersList()
@@ -957,7 +957,7 @@ namespace ExplorerServer.Core.DataBase
             {
                 var query =
                     "SELECT name, user_id " +
-                    "FROM users ";/* +
+                    "FROM users "; /* +
                     "WHERE user_id != @userId";*/
                 NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
                 //command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
@@ -981,7 +981,139 @@ namespace ExplorerServer.Core.DataBase
                 }
             }
             return result;
-        } 
+        }
+
+        public bool GetUserShareState(string userId)
+        {
+            lock (_dbConnection)
+            {
+                var command =
+                    "SELECT allow_sharing FROM users WHERE user_id = @userId";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = userId;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                    var dbReader = npgCommand.ExecuteReader();
+                    if (dbReader.HasRows)
+                    {
+                        dbReader.Read();
+                        var path = (bool) dbReader.GetValue(0);
+                        dbReader.Close();
+                        return path;
+                    }
+                    dbReader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        public bool MustChangePass(string userId)
+        {
+            lock (_dbConnection)
+            {
+                var command =
+                    "SELECT mast_change_pass FROM users WHERE user_id = @userId";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = userId;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                    var dbReader = npgCommand.ExecuteReader();
+                    if (dbReader.HasRows)
+                    {
+                        dbReader.Read();
+                        var path = (bool) dbReader.GetValue(0);
+                        dbReader.Close();
+                        return path;
+                    }
+                    dbReader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        public void AddNewUser(string login, string passHash, string name, bool isAdmin)
+        {
+            lock (_dbConnection)
+            {
+                var query =
+                    "INSERT INTO users (login, pass_hash, name, is_admin) " +
+                    "VALUES (@login, @pass_hash, @name, @is_admin)";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                command.Parameters.Add("@login", NpgsqlDbType.Text).Value = login;
+                command.Parameters.Add("@pass_hash", NpgsqlDbType.Text).Value = passHash;
+                command.Parameters.Add("@name", NpgsqlDbType.Text).Value = name;
+                command.Parameters.Add("@is_admin", NpgsqlDbType.Boolean).Value = isAdmin;
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Не удалось сохранить файл ключа. user_id = " + _userId);
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+            }
+        }
+
+        public bool UserIsAdmin(string userId)
+        {
+            lock (_dbConnection)
+            {
+                var command =
+                    "SELECT is_admin FROM users WHERE user_id = @userId";
+                NpgsqlCommand npgCommand = new NpgsqlCommand(command, _dbConnection);
+                npgCommand.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = userId;
+                try
+                {
+                    npgCommand.ExecuteNonQuery();
+                    var dbReader = npgCommand.ExecuteReader();
+                    if (dbReader.HasRows)
+                    {
+                        dbReader.Read();
+                        var path = (bool)dbReader.GetValue(0);
+                        dbReader.Close();
+                        return path;
+                    }
+                    dbReader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        public void SetMastChangePassAllUsers()
+        {
+            lock (_dbConnection)
+            {
+                var query =
+                    "UPDATE users SET mast_change_pass = 'true'";
+                NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("DB error: " + ex.Message);
+                }
+            }
+        }
 
         #endregion
     }

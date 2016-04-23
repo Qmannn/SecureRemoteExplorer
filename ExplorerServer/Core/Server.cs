@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -17,10 +16,10 @@ namespace ExplorerServer.Core
         private X509Certificate _certificate;
         private TcpListener _listener;
         private readonly List<Client> _clients = new List<Client>();
-        private NpgsqlConnection _dbConnection = null;
+        private NpgsqlConnection _dbConnection;
         private bool _working = true;
         private Thread _listenThread;
-        private ServerData _config;
+        private readonly ServerData _config;
         #endregion members#
 
         #region PublicMethod#
@@ -103,7 +102,7 @@ namespace ExplorerServer.Core
                     _clients.Add(client);
                     client.Start();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Console.WriteLine("Сервер был принудительно остановлен.");
                     _working = false;

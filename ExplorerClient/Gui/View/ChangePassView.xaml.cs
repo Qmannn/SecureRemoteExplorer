@@ -42,6 +42,7 @@ namespace ExplorerClient.Gui.View
             }
             MessageBox.Show("Готово!", "", MessageBoxButton.OK, MessageBoxImage.Information);
             MainGrid.IsEnabled = true;
+            StaticValueBox.PassBeenChanged = true;
             Close();
         }
     }

@@ -44,15 +44,24 @@
                            Margin="0,8,15,0"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Top"
-                           FontSize="14"
-                           Content="" />
+                           Content=""
+                           FontSize="14" />
                     <Label x:Name="LbNewFileCountN"
                            Width="121"
                            Margin="0,37,15,0"
                            HorizontalAlignment="Right"
-                           FontSize="14"
                            VerticalAlignment="Top"
-                           Content="" />
+                           Content=""
+                           FontSize="14" />
+                    <Button x:Name="BthAdminPanel"
+                            Background="White"
+                            Visibility="Hidden"
+                            Width="325"
+                            Height="33"
+                            Margin="10,125,0,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Content="Панель администратора" Click="BthAdminPanel_Click" />
                 </Grid>
             </GroupBox>
             <Button x:Name="BtnOpenExplorer"
@@ -79,7 +88,7 @@
                             Content="Сменить пароль" />
                     <CheckBox Name="CbAllowGetFiles"
                               Margin="10,60,10,72"
-                              Checked="CbAllowGetFiles_Checked"
+                              Click="CbAllowGetFiles_Checked"
                               Content="Получать файлы от &#10; других пользователей" />
                     <Button x:Name="BtnCreateKeys"
                             Width="174"
@@ -93,27 +102,32 @@
                 </Grid>
             </GroupBox>
             <Button x:Name="BtnLogout"
-                    Background="White"
                     Height="52"
                     Margin="452,20,15,0"
                     VerticalAlignment="Top"
+                    Background="White"
+                    Click="BtnLogout_Click"
                     Content="Выйти"
-                    RenderTransformOrigin="0.88,1.05" Click="BtnLogout_Click" />
+                    RenderTransformOrigin="0.88,1.05" />
         </Grid>
         <Grid Name="LoginErrorGrid"
               Background="Azure"
               ToolTip="Сообщение об ошибке"
               Visibility="Hidden">
-            <Label
+            <Label Width="263"
+                   Margin="165,144,0,0"
+                   HorizontalAlignment="Left"
                    VerticalAlignment="Top"
-                   FontSize="30" Margin="165,144,0,0" HorizontalAlignment="Left" Width="263">
+                   FontSize="30">
                 Вход не выполнен
             </Label>
             <Button Name="BtnLogin"
+                    Height="47"
                     Margin="165,200,165,0"
+                    VerticalAlignment="Top"
                     Background="Azure"
                     Click="BtnLogin_Click"
-                    FontSize="20" Height="47" VerticalAlignment="Top">
+                    FontSize="20">
                 Войти
             </Button>
         </Grid>

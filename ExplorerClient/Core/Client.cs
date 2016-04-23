@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using ExplorerClient.Core.Network;
 using ExplorerClient.Core.Objects;
 
@@ -816,6 +817,49 @@ namespace ExplorerClient.Core
             _sslChannel.SendMessage(new Message(Commands.Logout, String.Empty));
             IsAuthorized = false;
             OnDisconnected?.Invoke();
+        }
+
+        public static bool CreateUser(string name, string login, string pass, bool isAdmin)
+        {
+            var message = name + "$";
+            message += login + "$";
+            message += pass + "$";
+            message += isAdmin.ToString();
+            _sslChannel.SendMessage(new Message(Commands.CreateUser, message));
+            var recived = _sslChannel.ReciveMessage();
+            if (recived.Command != Commands.Ok)
+            {
+                LastError = recived.StringMessage;
+                return false;
+            }
+            return true;
+        }
+
+        public static Task<bool> CreateUserAsync(string name, string login, string pass, bool isAdmin)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return CreateUser(name, login, pass, isAdmin);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
+        }
+
+        public static bool MustChangeAllPass()
+        {
+            _sslChannel.SendMessage(new Message(Commands.MustChangeAllPass, String.Empty));
+            var recived = _sslChannel.ReciveMessage();
+            if (recived.Command != Commands.Ok)
+            {
+                LastError = recived.StringMessage;
+                return false;
+            }
+            return true;
         }
 
         #region Events

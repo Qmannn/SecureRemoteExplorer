@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows;
-using System.Drawing;
-using System.Windows.Documents;
 using System.Windows.Media;
 using ExplorerClient.Core;
 using ExplorerClient.Gui.View.DialogWindows;
@@ -48,7 +46,7 @@ namespace ExplorerClient.Gui.View
         private async void SetUserState()
         {
             var state = await Client.GetUserStateAsync();
-            if (state?.Length < 2)
+            if (state?.Length < 5)
             {
                 MessageBox.Show("Ошибка получения статистики хранилища", "Ошибка", MessageBoxButton.OK,
                     MessageBoxImage.Error);
@@ -58,19 +56,18 @@ namespace ExplorerClient.Gui.View
             {
                 LbUserFileCount.Content = state[0];
                 LbNewFileCountN.Content = state[1];
-                if (state[1] != "0")
+                LbNewFileCountN.Foreground = state[1] != "0" ? Brushes.Red : Brushes.Black;
+                CbAllowGetFiles.IsChecked = state[2] == true.ToString();
+                while (!StaticValueBox.PassBeenChanged && state[3] == true.ToString())
                 {
-                    LbNewFileCountN.Foreground = Brushes.Red;
+                    StaticValueBox.PassBeenChanged = false;
+                    new ChangePassView().ShowDialog();
                 }
-                else
-                {
-                    LbNewFileCountN.Foreground = Brushes.Black;
-                }
+                BthAdminPanel.Visibility = state[4] == true.ToString() ? Visibility.Visible : Visibility.Hidden;
             }
         }
 
         #endregion
-
 
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
@@ -157,6 +154,15 @@ namespace ExplorerClient.Gui.View
         private void BtnLogout_Click(object sender, RoutedEventArgs e)
         {
             Client.Logout();
+            StaticValueBox.PassBeenChanged = false;
+            BthAdminPanel.Visibility = Visibility.Hidden;
+        }
+
+        private void BthAdminPanel_Click(object sender, RoutedEventArgs e)
+        {
+            WaitingGrid.Visibility = Visibility.Visible;
+            new AdminPanelView().ShowDialog();
+            WaitingGrid.Visibility = Visibility.Hidden;
         }
     }
 }

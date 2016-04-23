@@ -1,0 +1,93 @@
+﻿<Window x:Class="ExplorerClient.Gui.View.AdminPanelView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:ExplorerClient.Gui.View"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Name="AdminWindow"
+        Title="Панель администратора"
+        Width="356.353"
+        Height="401.426"
+        mc:Ignorable="d" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <GroupBox x:Name="GbNewUser"
+                  Width="322"
+                  Height="292"
+                  Margin="10,10,0,0"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Top"
+                  Header="Добавить пользователя">
+            <Grid>
+                <Label x:Name="LbName"
+                       Width="125"
+                       Height="28"
+                       Margin="10,10,0,0"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                       Content="Имя пользователя" />
+                <TextBox x:Name="TbName"
+                         Height="23"
+                         Margin="15,42,10,0"
+                         VerticalAlignment="Top"
+                         TextWrapping="Wrap" />
+                <Label x:Name="LbLogin"
+                       Width="125"
+                       Height="28"
+                       Margin="10,70,0,0"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                       Content="Логин" />
+                <TextBox x:Name="TbLogin"
+                         Height="23"
+                         Margin="15,100,10,0"
+                         VerticalAlignment="Top"
+                         TextWrapping="Wrap" />
+                <Label x:Name="LbPass"
+                       Width="125"
+                       Height="28"
+                       Margin="10,125,0,0"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                       Content="Пароль" />
+                <TextBox x:Name="TbPass"
+                         Height="23"
+                         Margin="15,150,50,0"
+                         VerticalAlignment="Top" />
+                <Button x:Name="BtnGeneratePass"
+                        Width="35"
+                        Height="23"
+                        Margin="265,150,0,0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Background="White"
+                        Click="BtnGeneratePass_Click"
+                        Content="G"
+                        ToolTip="Сгенерировать случайный пароль" />
+                <Button x:Name="BtnAddUser"
+                        Height="35"
+                        Margin="15,229,10,0"
+                        VerticalAlignment="Top"
+                        Background="White"
+                        Click="BtnAddUser_Click"
+                        Content="Добавить пользователя" />
+                <CheckBox x:Name="CbAdmin"
+                          Width="245"
+                          Height="30"
+                          Margin="15,194,0,0"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top"
+                          Content="Администратор" />
+            </Grid>
+        </GroupBox>
+        <Button x:Name="BthMustChangePass"
+                Width="322"
+                Height="45"
+                Margin="10,307,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="White"
+                Content="Пора менять пароль!"
+                ToolTip="После следующего входа в систему каждому пользоватлелю будет необходимо сменить пароль" Click="BthMustChangePass_Click" />
+
+    </Grid>
+</Window>
