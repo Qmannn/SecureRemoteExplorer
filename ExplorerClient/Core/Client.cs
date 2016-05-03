@@ -862,6 +862,63 @@ namespace ExplorerClient.Core
             return true;
         }
 
+        public static string GetPassPolicy()
+        {
+            _sslChannel.SendMessage(new Message(Commands.GetPassParams, String.Empty));
+            var recived = _sslChannel.ReciveMessage();
+            if (recived.Command == Commands.Ok)
+            {
+                return recived.StringMessage;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Асинхронное получение политики паролей с сервера
+        /// </summary>
+        /// <returns>Строка,содержащая обозначеняи политик</returns>
+        public static Task<string> GetPassPolicyAsync()
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return GetPassPolicy();
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
+        public static bool SetPassPolicy(int minPassLength, int passPolicy)
+        {
+            _sslChannel.SendMessage(new Message(Commands.SetPassParams, $"{minPassLength}${passPolicy}"));
+            var recived = _sslChannel.ReciveMessage();
+            if (recived.Command == Commands.Ok)
+            {
+                return true;
+            }
+            LastError = recived.StringMessage;
+            return false;
+        }
+
+        public static Task<bool> SetPassPolicyAsync(int minPassLength, int passPolicy)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return SetPassPolicy(minPassLength, passPolicy);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
+        }
+
         #region Events
 
         public delegate void OnDisconnectedDelegate();

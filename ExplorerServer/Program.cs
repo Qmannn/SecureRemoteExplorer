@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using ExplorerServer.Config;
 using ExplorerServer.Core;
-using Mono.Math;
-using Npgsql;
 
 namespace ExplorerServer
 {

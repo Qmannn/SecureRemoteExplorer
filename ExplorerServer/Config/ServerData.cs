@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace ExplorerServer.Config
 {
@@ -14,6 +13,8 @@ namespace ExplorerServer.Config
         public string DataBaseLogin { get; set; }
         public string DataBasePass { get; set; }
         public string DataBaseName { get; set; }
+        public int MinPassLength { get; set; }
+        public int PassValidateRegex { get; set; }
 
         public bool ReadCongigFile()
         {
@@ -61,6 +62,22 @@ namespace ExplorerServer.Config
             DataBasePass = sReader.ReadLine();
             sReader.ReadLine();
             DataBaseName = sReader.ReadLine();
+            sReader.ReadLine();
+            varString = sReader.ReadLine();
+            if (!int.TryParse(varString, out varInt))
+            {
+                sReader.Close();
+                return false;
+            }
+            MinPassLength = varInt;
+            sReader.ReadLine();
+            varString = sReader.ReadLine();
+            if (!int.TryParse(varString, out varInt))
+            {
+                sReader.Close();
+                return false;
+            }
+            PassValidateRegex = varInt;
             sReader.Close();
             return true;
         }
@@ -84,6 +101,10 @@ namespace ExplorerServer.Config
             sWriter.WriteLine(DataBasePass);
             sWriter.WriteLine("Имя базы данных:");
             sWriter.WriteLine(DataBaseName);
+            sWriter.WriteLine("Минимальная длина пароля пользователя:");
+            sWriter.WriteLine(MinPassLength);
+            sWriter.WriteLine("Сложноть пароля пользователей (1-3):");
+            sWriter.WriteLine(PassValidateRegex);
             sWriter.Close();
 
         }
@@ -107,6 +128,10 @@ namespace ExplorerServer.Config
             sWriter.WriteLine();
             sWriter.WriteLine("Имя базы данных:");
             sWriter.WriteLine();
+            sWriter.WriteLine("Минимальная длина пароля пользователя:");
+            sWriter.WriteLine();
+            sWriter.WriteLine("Сложноть пароля пользователей (1-3):");
+            sWriter.WriteLine("");
             sWriter.Close();
         }
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
+﻿using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using ExplorerClient.Core;
@@ -12,7 +9,7 @@ namespace ExplorerClient.Gui.View
     /// <summary>
     /// Логика взаимодействия для MainView.xaml
     /// </summary>
-    public partial class MainView : Window
+    public partial class MainView
     {
         public MainView()
         {
@@ -30,7 +27,7 @@ namespace ExplorerClient.Gui.View
 
         void Login()
         {
-            new DialogWindows.LoginView().ShowDialog();
+            new LoginView().ShowDialog();
             WorkGrid.Visibility = GetVisibility(Client.IsAuthorized);
             LoginErrorGrid.Visibility = GetVisibility(!Client.IsAuthorized);
             Client.OnDisconnected += ClientOnOnDisconnected;

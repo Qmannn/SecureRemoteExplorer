@@ -9,15 +9,16 @@
         Height="91.471"
         Icon="/ExplorerClient;component/Gui/image/key.PNG"
         ResizeMode="NoResize"
-        mc:Ignorable="d" WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        mc:Ignorable="d">
     <Grid>
         <Button x:Name="BtnOk"
-                Background="White"
                 Width="125"
                 Height="30"
                 Margin="288,10,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
+                Background="White"
                 Click="BtnOk_Click"
                 Content="OK" />
         <PasswordBox x:Name="Password"

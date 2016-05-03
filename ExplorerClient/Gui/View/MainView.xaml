@@ -10,18 +10,19 @@
         Height="368"
         MinWidth="500"
         MinHeight="300"
-        ToolTip=""
+        Icon="../image/Open Folder-52.png"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
     <Grid>
-        <Grid Name="WorkGrid" IsVisibleChanged="WorkGrid_OnIsVisibleChanged">
+        <Grid Name="WorkGrid" IsVisibleChanged="WorkGrid_OnIsVisibleChanged" Visibility="Hidden">
             <GroupBox x:Name="GroupBox"
                       Height="62"
                       Margin="10,10,141,0"
                       VerticalAlignment="Top"
+                      FontStyle="Italic"
                       Header="Личные данные">
                 <Label x:Name="LbName"
-                       Margin="10,10,-2,0"
+                       Margin="10,5,0,0"
                        VerticalAlignment="Top"
                        Content="Имя: " />
             </GroupBox>
@@ -54,14 +55,19 @@
                            Content=""
                            FontSize="14" />
                     <Button x:Name="BthAdminPanel"
-                            Background="White"
-                            Visibility="Hidden"
                             Width="325"
                             Height="33"
                             Margin="10,125,0,0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
-                            Content="Панель администратора" Click="BthAdminPanel_Click" />
+                            Background="White"
+                            Click="BthAdminPanel_Click"
+                            Visibility="Hidden">
+                        <Grid>
+                            <TextBlock Margin="50,7,0,0" Text="Панель администратора" />
+                            <Image Margin="0,0,150,0" Source="../image/Settings-52.png" />
+                        </Grid>
+                    </Button>
                 </Grid>
             </GroupBox>
             <Button x:Name="BtnOpenExplorer"
@@ -69,8 +75,12 @@
                     Margin="10,272,14,0"
                     VerticalAlignment="Top"
                     Background="White"
-                    Click="BtnOpenExplorer_Click"
-                    Content="Открыть хранилице файлов" />
+                    Click="BtnOpenExplorer_Click">
+                <Grid>
+                    <TextBlock Margin="50,10,0,0" Text="Открыть хранилице файлов" />
+                    <Image Margin="0,0,150,0" Source="../image/Open Folder-52.png" />
+                </Grid>
+            </Button>
             <GroupBox x:Name="GroupSettings"
                       Width="206"
                       Height="190"
@@ -84,8 +94,12 @@
                             Margin="10,10,10,0"
                             VerticalAlignment="Top"
                             Background="White"
-                            Click="BtnChangePass_Click"
-                            Content="Сменить пароль" />
+                            Click="BtnChangePass_Click">
+                        <Grid>
+                            <TextBlock Margin="30,5,0,0">Сменить пароль</TextBlock>
+                            <Image Margin="0,0,110,0" Source="../image/Password-52.png" />
+                        </Grid>
+                    </Button>
                     <CheckBox Name="CbAllowGetFiles"
                               Margin="10,60,10,72"
                               Click="CbAllowGetFiles_Checked"
@@ -97,23 +111,32 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
                             Background="White"
-                            Click="BtnCreateKeys_Click"
-                            Content="Создать новый ключ&#10; для обмена файлами" />
+                            Click="BtnCreateKeys_Click">
+                        <Grid>
+                            <TextBlock Margin="40,0,0,0" Text="Создать новый ключ&#10; для обмена файлами" />
+                            <Image Margin="0,0,130,0" Source="../image/Key 2-52.png" />
+                        </Grid>
+                    </Button>
                 </Grid>
             </GroupBox>
             <Button x:Name="BtnLogout"
+                    Width="126"
                     Height="52"
-                    Margin="452,20,15,0"
+                    Margin="0,20,15,0"
+                    HorizontalAlignment="Right"
                     VerticalAlignment="Top"
                     Background="White"
                     Click="BtnLogout_Click"
-                    Content="Выйти"
-                    RenderTransformOrigin="0.88,1.05" />
+                    RenderTransformOrigin="0.88,1.05">
+                <Grid>
+                    <TextBlock Margin="50,15,10,10">Выйти</TextBlock>
+                    <Image Margin="0,10,50,10" Source="../image/Exit-52.png" />
+                </Grid>
+            </Button>
         </Grid>
         <Grid Name="LoginErrorGrid"
               Background="Azure"
-              ToolTip="Сообщение об ошибке"
-              Visibility="Hidden">
+              Visibility="Visible">
             <Label Width="263"
                    Margin="165,144,0,0"
                    HorizontalAlignment="Left"
@@ -128,7 +151,10 @@
                     Background="Azure"
                     Click="BtnLogin_Click"
                     FontSize="20">
-                Войти
+                <Grid>
+                    <TextBlock Margin="60,7,0,0" Text="Войти" />
+                    <Image Margin="0,0,120,0" Source="../image/Import-52.png"/>
+                </Grid>
             </Button>
         </Grid>
         <Grid Name="WaitingGrid"

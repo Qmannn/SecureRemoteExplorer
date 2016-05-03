@@ -8,7 +8,8 @@
         Width="372.794"
         Height="341.813"
         Loaded="UserWindow_Loaded"
-        mc:Ignorable="d" WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="14*" />

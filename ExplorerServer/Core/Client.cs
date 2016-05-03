@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using ExplorerServer.Core.Cryptography;
 using ExplorerServer.Core.DataBase;
@@ -22,15 +23,16 @@ namespace ExplorerServer.Core
         private string _userId;
         private string _login;
         private string _name;
-
+        private Server _server;
 
         #region Public#
 
-        public Client(TcpClient client, X509Certificate certificate, NpgsqlConnection dbConnection)
+        public Client(TcpClient client, X509Certificate certificate, NpgsqlConnection dbConnection, Server server)
         {
             _client = client;
             _sslChannel = new SslChannel(_client, certificate);
             _dbController = new DbController(dbConnection);
+            _server = server;
         }
 
         private void Work()
@@ -157,12 +159,19 @@ namespace ExplorerServer.Core
                 case Commands.MustChangeAllPass:
                     MustChangeAllPass();
                     break;
+                case Commands.SetPassParams:
+                    SetPassPolicy(message);
+                    break;
+                case Commands.GetPassParams:
+                    SendPassPolicy();
+                    break;
                 default:
                     Console.WriteLine("Получена неизвестная команда");
                     return false;
             }
             return true;
         }
+
         private bool Authorization(Message loginMessage)
         {
             string login = loginMessage.StringMessage.Split('$').First();
@@ -650,6 +659,40 @@ namespace ExplorerServer.Core
             SendResult(true);
         }
 
+        private void SendPassPolicy()
+        {
+            SendResult(true, $"{_server.MinPassLength}${_server.PassPolicyNumber}");
+        }
+
+        private void SetPassPolicy(Message message)
+        {
+            var policies = message.StringMessage.Split('$');
+            if (policies.Length < 2)
+            {
+                SendResult(false);
+                return;
+            }
+            int minPassLength;
+            if (!Int32.TryParse(policies[0], out minPassLength))
+            {
+                SendResult(false);
+                return;
+            }
+            int passPolicy;
+            if (!Int32.TryParse(policies[1], out passPolicy))
+            {
+                SendResult(false);
+                return;
+            }
+            if (minPassLength < 1 || passPolicy < 1 || passPolicy > 3)
+            {
+                SendResult(false);
+                return;
+            }
+            _server.SetPassPolicy(minPassLength, passPolicy);
+            SendResult(true);
+        }
+
         #endregion#
 
         #region Other logic
@@ -661,8 +704,7 @@ namespace ExplorerServer.Core
         /// <returns></returns>
         private bool CheckPassPolicy(string pass)
         {
-            //TODO сделать проврку
-            return true;
+            return Regex.IsMatch(pass, _server.PassRegex);
         }
 
         private static string CreateCommonFileName(string fileName)

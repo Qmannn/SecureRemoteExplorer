@@ -20,6 +20,32 @@ namespace ExplorerServer.Core
         private bool _working = true;
         private Thread _listenThread;
         private readonly ServerData _config;
+
+        /// <summary>
+        /// Регулярное выражени для валидации пароля
+        /// </summary>
+        public string PassRegex
+        {
+            get
+            {
+                switch (_config.PassValidateRegex)
+                {
+                    case 1:
+                        return ".*";
+                    case 2:
+                        return "((?=.*\\d)(?=.*\\w).{" + _config.MinPassLength + ",20})";
+                    case 3:
+                        return "((?=.*\\d)(?=.*[A-Za-z])(?=.*[_@$]).{" + _config.MinPassLength + ",20})";
+                    default:
+                        return ".*";
+                }
+            }
+        }
+
+        public int PassPolicyNumber => _config.PassValidateRegex;
+
+        public int MinPassLength => _config.MinPassLength;
+
         #endregion members#
 
         #region PublicMethod#
@@ -87,6 +113,13 @@ namespace ExplorerServer.Core
             Console.WriteLine("Сервер останвлен");
         }
 
+        public void SetPassPolicy(int minPassLength, int passPolicy)
+        {
+            _config.PassValidateRegex = passPolicy;
+            _config.MinPassLength = minPassLength;
+            _config.WriteConfigFile();
+        }
+
         #endregion PublicMethods
 
         #region PrivateMethods
@@ -98,7 +131,7 @@ namespace ExplorerServer.Core
             {
                 try
                 {
-                    Client client = new Client(_listener.AcceptTcpClient(), _certificate, _dbConnection);
+                    Client client = new Client(_listener.AcceptTcpClient(), _certificate, _dbConnection, this);
                     _clients.Add(client);
                     client.Start();
                 }

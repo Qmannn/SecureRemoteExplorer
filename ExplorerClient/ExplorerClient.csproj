@@ -168,32 +168,46 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Gui\image\key.PNG" />
-    <Resource Include="Gui\image\save.PNG" />
+    <Resource Include="Gui\image\Exit-52.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Gui\image\download.PNG" />
+    <Resource Include="Gui\image\Password-52.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Gui\image\delete.png" />
+    <Resource Include="Gui\image\Key 2-52.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Gui\image\update.PNG" />
+    <Resource Include="Gui\image\Open Folder-52.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Gui\image\send.PNG" />
+    <Resource Include="Gui\image\Download-52.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Gui\image\hash.PNG" />
+    <Resource Include="Gui\image\Delete-52.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Gui\image\recalcHash.PNG" />
+    <Resource Include="Gui\image\Upload to the Cloud-48.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Gui\image\upload.PNG" />
+    <Resource Include="Gui\image\Restart-52.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Gui\image\decrypt.PNG" />
+    <Resource Include="Gui\image\Share-52.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\Check File-52.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\Available Updates-52.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\Save-52.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\Settings-52.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Gui\image\Import-52.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

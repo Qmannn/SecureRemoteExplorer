@@ -29,6 +29,8 @@
         GetUserList,
         Logout,
         CreateUser,
-        MustChangeAllPass
+        MustChangeAllPass,
+        SetPassParams,
+        GetPassParams
     }
 }

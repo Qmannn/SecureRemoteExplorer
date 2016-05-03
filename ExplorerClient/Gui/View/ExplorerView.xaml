@@ -1,17 +1,17 @@
 ﻿<Window x:Class="ExplorerClient.Gui.View.ExplorerView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:core="clr-namespace:ExplorerClient.Core"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:local="clr-namespace:ExplorerClient.Gui.View"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Icon="../image/Open Folder-52.png"
         Title="Файлы"
         Width="650"
         Height="300"
         MinWidth="620"
         MinHeight="300"
         Loaded="Window_Loaded"
-        mc:Ignorable="d" WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        mc:Ignorable="d">
     <Grid>
         <TabControl x:Name="TabExplorer">
             <TabItem Width="200" Header="Общие файлы">
@@ -29,7 +29,7 @@
                                 BorderBrush="White"
                                 Click="BtnDownloadCommon_Click"
                                 ToolTip="Скачать">
-                            <Image Source="../image/download.PNG" />
+                            <Image Margin="5" Source="../image/Download-52.png" />
                         </Button>
                         <Button Name="BtnDeleteCommon"
                                 Width="50"
@@ -39,7 +39,7 @@
                                 BorderBrush="White"
                                 Click="BtnDeleteCommon_Click"
                                 ToolTip="Удалить">
-                            <Image Source="../image/delete.png" />
+                            <Image Source="../image/Delete-52.png" />
                         </Button>
                         <Button Name="BtnUpload"
                                 Width="50"
@@ -49,7 +49,7 @@
                                 BorderBrush="White"
                                 Click="BtnUpload_Click"
                                 ToolTip="Загрузить новый файл">
-                            <Image Source="../image/upload.PNG" />
+                            <Image Margin="0" Source="../image/Upload to the Cloud-48.png" />
                         </Button>
                         <Button Name="BtnUpdateCommon"
                                 Width="50"
@@ -59,7 +59,7 @@
                                 BorderBrush="White"
                                 Click="BtnUpdateCommon_Click"
                                 ToolTip="Обновить список">
-                            <Image Source="../image/update.png" />
+                            <Image Margin="3" Source="../image/Restart-52.png" />
                         </Button>
                     </Grid>
                     <Grid Grid.Row="1">
@@ -98,7 +98,7 @@
                                         BorderBrush="White"
                                         Click="BtnDownloadPrivate_Click"
                                         ToolTip="Скачать">
-                                    <Image Source="../image/download.PNG" />
+                                    <Image Margin="5" Source="../image/Download-52.png" />
                                 </Button>
                                 <Button Name="BtnDeletePrivate"
                                         Width="60"
@@ -108,7 +108,7 @@
                                         BorderBrush="White"
                                         Click="BtnDeletePrivate_Click"
                                         ToolTip="Удалить">
-                                    <Image Source="../image/delete.png" />
+                                    <Image Source="../image/Delete-52.png" />
                                 </Button>
                                 <Button Name="BtnUploadPrivate"
                                         Width="60"
@@ -118,7 +118,7 @@
                                         BorderBrush="White"
                                         Click="BtnUploadPrivate_Click"
                                         ToolTip="Загрузить новый файл">
-                                    <Image Source="../image/upload.PNG" />
+                                    <Image Source="../image/Upload to the Cloud-48.png" />
                                 </Button>
                                 <Button Name="BtnCheckFile"
                                         Width="60"
@@ -126,8 +126,9 @@
                                         HorizontalAlignment="Left"
                                         Background="White"
                                         BorderBrush="White"
-                                        ToolTip="Проверить целостность" Click="BtnCheckFile_Click">
-                                    <Image Source="../image/hash.PNG" />
+                                        Click="BtnCheckFile_Click"
+                                        ToolTip="Проверить целостность">
+                                    <Image Source="../image/Check File-52.png" Margin="3"/>
                                 </Button>
                                 <Button Name="BtnChKey"
                                         Width="60"
@@ -137,7 +138,7 @@
                                         BorderBrush="White"
                                         Click="BtnChKey_Click"
                                         ToolTip="Сменить ключ шифрования">
-                                    <Image Source="../image/key.PNG" />
+                                    <Image Source="../image/Key 2-52.png" Margin="3"/>
                                 </Button>
                                 <Button Name="BtnShare"
                                         Width="60"
@@ -146,8 +147,8 @@
                                         Background="White"
                                         BorderBrush="White"
                                         Click="BtnShare_Click"
-                                        ToolTip="Передать файл">
-                                    <Image Source="../image/send.PNG" />
+                                        ToolTip="Отправить файл другому пользователю">
+                                    <Image Source="../image/Share-52.png" Margin="3"/>
                                 </Button>
                                 <Button Name="BtnRecalcHash"
                                         Width="60"
@@ -157,7 +158,7 @@
                                         BorderBrush="White"
                                         Click="BtnRecalc_Click"
                                         ToolTip="Пересчитать хэш">
-                                    <Image Source="../image/recalcHash.PNG" />
+                                    <Image Source="../image/Available Updates-52.png" />
                                 </Button>
                                 <Button Name="BtnUpdatePrivate"
                                         Width="60"
@@ -167,7 +168,7 @@
                                         BorderBrush="White"
                                         Click="BtnUpdatePrivate_Click"
                                         ToolTip="Обновить список">
-                                    <Image Source="../image/update.PNG" />
+                                    <Image Margin="3" Source="../image/Restart-52.png" />
                                 </Button>
                             </Grid>
                         </Border>
@@ -222,8 +223,9 @@
                                 HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
-                                ToolTip="Принять файл" Click="BtnReciveFile_Click">
-                            <Image Source="../image/save.PNG" />
+                                Click="BtnReciveFile_Click"
+                                ToolTip="Принять файл">
+                            <Image Source="../image/Save-52.png" Margin="3"/>
                         </Button>
                         <Button Name="BtnDeleteNewFile"
                                 Width="50"
@@ -231,8 +233,9 @@
                                 HorizontalAlignment="Left"
                                 Background="White"
                                 BorderBrush="White"
-                                ToolTip="Удалить файл не принимая" Click="BtnDeleteNewFile_Click">
-                            <Image Source="../image/delete.png" />
+                                Click="BtnDeleteNewFile_Click"
+                                ToolTip="Удалить файл не принимая">
+                            <Image Source="../image/Delete-52.png" />
                         </Button>
                         <Button Name="BtnUpdateNewFiles"
                                 Width="50"
@@ -242,7 +245,7 @@
                                 BorderBrush="White"
                                 Click="BtnUpdateNewFiles_Click"
                                 ToolTip="Обновить список">
-                            <Image Source="../image/update.png" />
+                            <Image Source="../image/Restart-52.png" Margin="2" />
                         </Button>
                     </Grid>
                     <ListView Name="LvNewFiles" Grid.Row="1">
@@ -282,7 +285,7 @@
                                 BorderBrush="White"
                                 Click="BtnUpdateReports_Click"
                                 ToolTip="Обновить список">
-                            <Image Source="../image/update.png" />
+                            <Image Source="../image/Restart-52.png" Margin="2"/>
                         </Button>
                     </Grid>
                     <ListView Name="LvReports" Grid.Row="1">

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using ExplorerClient.Core;
 using ExplorerClient.Core.Objects;
@@ -146,6 +147,18 @@ namespace ExplorerClient.Gui.View
             SetWaitScreen(true);
             _fileDialog.ShowDialog();
             var fileName = _fileDialog.FileName;
+            if (fileName == String.Empty)
+            {
+                SetWaitScreen(false);
+                return;
+            }
+            if (!File.Exists(fileName))
+            {
+                MessageBox.Show("Файл не найден.", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                SetWaitScreen(false);
+                return;
+            }
             if (!await Client.PutCommonFileAsync(fileName))
             {
                 MessageBox.Show("Не удалось загрузить файл. " + "\n Ошибка: " + Client.LastError, "Ошибка",
@@ -212,6 +225,18 @@ namespace ExplorerClient.Gui.View
             SetWaitScreen(true);
             _fileDialog.ShowDialog();
             var fileName = _fileDialog.FileName;
+            if (fileName == String.Empty)
+            {
+                SetWaitScreen(false);
+                return;
+            }
+            if (!File.Exists(fileName))
+            {
+                MessageBox.Show("Файл не найден.", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                SetWaitScreen(false);
+                return;
+            }
             StaticValueBox.Key = null;
             new GetKeyDialog().ShowDialog();
             if (StaticValueBox.Key == null)
@@ -420,5 +445,7 @@ namespace ExplorerClient.Gui.View
             SetWaitScreen(false);
             UpdateNewFiles();
         }
+
+
     }
 }
