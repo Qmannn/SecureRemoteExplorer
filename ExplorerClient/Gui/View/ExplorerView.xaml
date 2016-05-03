@@ -194,7 +194,7 @@
                                                     DisplayMemberBinding="{Binding Path=Size}"
                                                     Header="Размер" />
                                     <GridViewColumn Width="100"
-                                                    DisplayMemberBinding="{Binding Path=IsDamaged}"
+                                                    DisplayMemberBinding="{Binding Path=Damaged}"
                                                     Header="Поврежден" />
                                     <GridViewColumn Width="130"
                                                     DisplayMemberBinding="{Binding Path=LastDamageCheck}"

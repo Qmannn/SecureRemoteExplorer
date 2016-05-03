@@ -23,7 +23,7 @@ namespace ExplorerServer.Core
         private string _userId;
         private string _login;
         private string _name;
-        private Server _server;
+        private readonly Server _server;
 
         #region Public#
 
@@ -78,7 +78,14 @@ namespace ExplorerServer.Core
                     Console.WriteLine("Клиент отключен. Логин: " + _login);
                     return false;
                 case Commands.ChangePass:
-                    _sslChannel.SendMessage(new Message(ChangePassword(message) ? Commands.Ok : Commands.Error, String.Empty));
+                    if (ChangePassword(message))
+                    {
+                        SendResult(true);
+                    }
+                    else
+                    {
+                        SendResult(false, "Не удалось сменить пароль. Пароль слишком слабый или короткий");
+                    }
                     break;
                 case Commands.SetShareStatus:
                     bool setStatusResult = false;
@@ -215,11 +222,7 @@ namespace ExplorerServer.Core
             var sha1 = SHA1.Create();
 
             var pass = ByteToStringConverter(sha1.ComputeHash(StringToByteConverter(passMessage.StringMessage)));
-            if (!_dbController.SetNewPassword(pass))
-            {
-                return false;
-            }
-            return true;
+            return _dbController.SetNewPassword(pass);
         }
 
         private bool SetShareStatus(Message message)
@@ -332,6 +335,11 @@ namespace ExplorerServer.Core
                 SendResult(false, "Неверный ключ!");
                 return;
             }
+            if (!File.Exists(filePath))
+            {
+                SendResult(false, "Файл не найден на сервере!");
+                return;
+            }
             SendResult(true);
             _sslChannel.SendEncryptedFile(filePath, fileKey);
             SendResult(true);
@@ -396,6 +404,7 @@ namespace ExplorerServer.Core
             if (filePath == null)
             {
                 SendResult(false, "Файл не найден");
+                _dbController.UpdateDamageStatus(message.StringMessage, true);
                 return;
             }
             SHA1 hash = SHA1.Create();
@@ -403,6 +412,7 @@ namespace ExplorerServer.Core
             if (!File.Exists(filePath))
             {
                 SendResult(false, "Файл не найден на сервере. Обратитесь к администратору");
+                _dbController.UpdateDamageStatus(message.StringMessage, true);
                 return;
             }
             using (FileStream fs = new FileStream(filePath, FileMode.Open))
@@ -704,7 +714,7 @@ namespace ExplorerServer.Core
         /// <returns></returns>
         private bool CheckPassPolicy(string pass)
         {
-            return Regex.IsMatch(pass, _server.PassRegex);
+            return pass.Length >= _server.MinPassLength && Regex.IsMatch(pass, _server.PassRegex);
         }
 
         private static string CreateCommonFileName(string fileName)

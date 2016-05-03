@@ -33,7 +33,7 @@ namespace ExplorerServer.Core
                     case 1:
                         return ".*";
                     case 2:
-                        return "((?=.*\\d)(?=.*\\w).{" + _config.MinPassLength + ",20})";
+                        return "((?=.*\\d)(?=.*[a-z]).{" + _config.MinPassLength + ",20})";
                     case 3:
                         return "((?=.*\\d)(?=.*[A-Za-z])(?=.*[_@$]).{" + _config.MinPassLength + ",20})";
                     default:

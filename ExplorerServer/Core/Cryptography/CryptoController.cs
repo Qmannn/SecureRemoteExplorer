@@ -145,7 +145,7 @@ namespace ExplorerServer.Core.Cryptography
                 }
                 EncryptFile(rsaPrivateParamsFilePath, fileKey);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

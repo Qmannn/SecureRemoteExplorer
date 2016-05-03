@@ -19,6 +19,8 @@ namespace ExplorerClient.Core.Objects
 
         public bool IsDamaged { get; set; }
 
+        public string Damaged => IsDamaged ? "Да" : "Нет";
+
         public string LastDamageCheck { get; set; }
 
         public string Owner { get; set; }

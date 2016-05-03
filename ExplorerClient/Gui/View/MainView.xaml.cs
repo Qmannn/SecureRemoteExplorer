@@ -161,5 +161,10 @@ namespace ExplorerClient.Gui.View
             new AdminPanelView().ShowDialog();
             WaitingGrid.Visibility = Visibility.Hidden;
         }
+
+        private void UpdateState_Click(object sender, RoutedEventArgs e)
+        {
+            SetUserState();
+        }
     }
 }

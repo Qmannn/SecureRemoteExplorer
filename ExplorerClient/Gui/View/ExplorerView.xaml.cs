@@ -107,7 +107,7 @@ namespace ExplorerClient.Gui.View
             }
             SetWaitScreen(true);
             string fileName = null;
-            if (LvCommonFiles.Items.Count == 1)
+            if (LvCommonFiles.SelectedItems.Count == 1)
             {
                 _saveFileDialog.FileName = ((RemoteFile) LvCommonFiles.Items[0]).Name;
                 _saveFileDialog.ShowDialog();
@@ -309,7 +309,7 @@ namespace ExplorerClient.Gui.View
             {
                 if (!await Client.RecalcHashAsync(file.Uuid))
                 {
-                    MessageBox.Show("Не удалось пересчитать контрольную сумму!", "Результат пересчета контрольной суммы",
+                    MessageBox.Show($"Не удалось пересчитать контрольную сумму! Файл: {file.Name}", "Результат пересчета контрольной суммы",
                         MessageBoxButton.OK, MessageBoxImage.Error);
                     file.IsDamaged = true;
                     success = false;
@@ -365,21 +365,37 @@ namespace ExplorerClient.Gui.View
         {
             if (LvPrivateFiles.SelectedItems.Count == 0)
             {
-                MessageBox.Show("Необходимо выбрать файл");
+                MessageBox.Show("Необходимо выбрать файл (файлы)", "Результат проверки контрльной суммы",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             SetWaitScreen(true);
-            if (!await Client.CheckHashFileAsync(((RemoteFile)LvPrivateFiles.SelectedItems[0]).Uuid))
+            bool foundDamageFile = false;
+            if (LvPrivateFiles.SelectedItems.Count == 1)
             {
-                MessageBox.Show("Файл поврежден!", "Результат проверки контрльной суммы",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                ((RemoteFile)LvPrivateFiles.SelectedItems[0]).IsDamaged = true;
+                if (!await Client.CheckHashFileAsync(((RemoteFile)LvPrivateFiles.SelectedItems[0]).Uuid))
+                {
+                    MessageBox.Show("Файл поврежден!", "Результат проверки контрльной суммы",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    ((RemoteFile)LvPrivateFiles.SelectedItems[0]).IsDamaged = true;
+                }
+                else
+                {
+                    MessageBox.Show("Файл не поврежден.", "Результат проверки контрльной суммы",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
             else
             {
-                MessageBox.Show("Файл не поврежден.", "Результат проверки контрльной суммы",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
+                foreach (RemoteFile file in LvPrivateFiles.SelectedItems)
+                {
+                    foundDamageFile = !await Client.CheckHashFileAsync(file.Uuid) || foundDamageFile;
+                }
+                MessageBox.Show(foundDamageFile ? "Обнаружены поврежденные файлы" : "Поврежденные файлы не обнаружены",
+                    "Результат проверки контрльной суммы",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            UpdatePrivateFiles();
             SetWaitScreen(false);
         }
 

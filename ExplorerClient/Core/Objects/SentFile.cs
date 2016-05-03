@@ -10,7 +10,13 @@
 
         public string Name { get; set; }
 
-        public string Recived { get; set; }
+        private string _isRecived;
+
+        public string Recived
+        {
+            get { return _isRecived; }
+            set { _isRecived = value == true.ToString() ? "Да" : "Нет"; }
+        }
 
         public string Comment { get; set; }
 

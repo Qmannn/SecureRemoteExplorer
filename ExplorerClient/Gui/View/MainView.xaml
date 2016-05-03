@@ -14,7 +14,7 @@
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
     <Grid>
-        <Grid Name="WorkGrid" IsVisibleChanged="WorkGrid_OnIsVisibleChanged" Visibility="Hidden">
+        <Grid Name="WorkGrid" IsVisibleChanged="WorkGrid_OnIsVisibleChanged">
             <GroupBox x:Name="GroupBox"
                       Height="62"
                       Margin="10,10,141,0"
@@ -41,19 +41,26 @@
                            VerticalAlignment="Top"
                            Content="Файлов, ожидающих получение:" />
                     <Label x:Name="LbUserFileCount"
-                           Width="121"
-                           Margin="0,8,15,0"
+                           Width="80"
+                           Margin="0,8,56,0"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Top"
                            Content=""
                            FontSize="14" />
                     <Label x:Name="LbNewFileCountN"
-                           Width="121"
-                           Margin="0,37,15,0"
+                           Width="80"
+                           Margin="0,37,56,0"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Top"
                            Content=""
                            FontSize="14" />
+                    <Button Margin="320,0,0,140"
+                            Name="UpdateState"
+                            Background="White"
+                            BorderBrush="White"
+                            ToolTip="Обновить статистику хранилища" Click="UpdateState_Click">
+                        <Image Source="../image/Restart-52.png" />
+                    </Button>
                     <Button x:Name="BthAdminPanel"
                             Width="325"
                             Height="33"
@@ -136,7 +143,7 @@
         </Grid>
         <Grid Name="LoginErrorGrid"
               Background="Azure"
-              Visibility="Visible">
+              Visibility="Hidden">
             <Label Width="263"
                    Margin="165,144,0,0"
                    HorizontalAlignment="Left"
@@ -153,7 +160,7 @@
                     FontSize="20">
                 <Grid>
                     <TextBlock Margin="60,7,0,0" Text="Войти" />
-                    <Image Margin="0,0,120,0" Source="../image/Import-52.png"/>
+                    <Image Margin="0,0,120,0" Source="../image/Import-52.png" />
                 </Grid>
             </Button>
         </Grid>

@@ -608,7 +608,7 @@ namespace ExplorerServer.Core.DataBase
             lock (_dbConnection)
             {
                 var query =
-                    "UPDATE private_files SET file_hash_sum = @hashSum WHERE file_id = @fileId";
+                    "UPDATE private_files SET file_hash_sum = @hashSum, is_damaged = 'false'  WHERE file_id = @fileId";
                 NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
                 command.Parameters.Add("@hashSum", NpgsqlDbType.Text).Value = fileHash;
                 command.Parameters.Add("@fileId", NpgsqlDbType.Uuid).Value = fileId;

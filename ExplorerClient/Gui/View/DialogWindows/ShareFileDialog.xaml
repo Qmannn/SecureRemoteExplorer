@@ -8,6 +8,7 @@
         Width="372.794"
         Height="341.813"
         Loaded="UserWindow_Loaded"
+        Icon="../../image/Share-52.png"
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
     <Grid>
