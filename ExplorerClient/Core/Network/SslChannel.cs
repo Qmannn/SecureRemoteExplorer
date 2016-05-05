@@ -29,11 +29,7 @@ namespace ExplorerClient.Core.Network
               X509Chain chain,
               SslPolicyErrors sslPolicyErrors)
         {
-            return true;
-            if (sslPolicyErrors == SslPolicyErrors.None)
-                return true;
-            
-            throw new SecurityException("Server certificate error. PolicyError: " + sslPolicyErrors);
+            return certificate != null;
         }
 
         /// <summary>
@@ -50,7 +46,7 @@ namespace ExplorerClient.Core.Network
             {
                 _client = new TcpClient(host, port);
                 _stream = new SslStream(_client.GetStream(), false,
-                    new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                    ValidateServerCertificate, null);
                 _stream.AuthenticateAsClient(host); 
             }
             catch (Exception)
