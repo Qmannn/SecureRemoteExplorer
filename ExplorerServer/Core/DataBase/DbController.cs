@@ -957,10 +957,10 @@ namespace ExplorerServer.Core.DataBase
             {
                 var query =
                     "SELECT name, user_id " +
-                    "FROM users "; /* +
-                    "WHERE user_id != @userId";*/
+                    "FROM users " +
+                    "WHERE user_id != @userId";
                 NpgsqlCommand command = new NpgsqlCommand(query, _dbConnection);
-                //command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
+                command.Parameters.Add("@userId", NpgsqlDbType.Uuid).Value = _userId;
                 try
                 {
                     var reader = command.ExecuteReader();

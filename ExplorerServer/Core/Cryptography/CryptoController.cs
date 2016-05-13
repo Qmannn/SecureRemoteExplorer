@@ -34,7 +34,7 @@ namespace ExplorerServer.Core.Cryptography
 
         public byte[] GostDecryptBytes(byte[] bytes)
         {
-            return _gost.Decode(bytes, _keyBytes, false);
+            return _gost.Decode(bytes, _keyBytes);
         }
 
         public void ChangeEncryptKey(string file, string oldKey, string newKey)
