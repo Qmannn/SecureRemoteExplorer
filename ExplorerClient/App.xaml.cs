@@ -17,6 +17,6 @@ namespace ExplorerClient
 	
 	public static class ForeverAndEver()
 	{
-			
+			фвфвфывфывфывфы
 	}
 }
