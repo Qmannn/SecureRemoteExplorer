@@ -14,4 +14,9 @@ namespace ExplorerClient
     public partial class App : Application
     {
     }
+	
+	public static class ForeverAndEver()
+	{
+			фвфвфывфывфывфы
+	}
 }
